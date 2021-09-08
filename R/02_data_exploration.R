@@ -28,7 +28,7 @@ fluke_data %>% group_by(Farm) %>%
   distinct(UniqueID) %>% 
   summarise(n = n())
 
-# Number of cows in each group on each farm
+# Proportion of cows in each group on each farm
 fluke_data %>% group_by(Farm) %>% 
   distinct(UniqueID, .keep_all = TRUE) %>% 
   count(Group) %>% 
@@ -198,14 +198,6 @@ positive_visit_group %>% ggplot(mapping = aes(x = Visit,
   scale_y_continuous(name = "Positives", 
                      breaks = c(0,2,4,6,8,10,12)) +
   facet_wrap(~Farm)
-
-
-
-
-
-
-
-
 
 # Change in status --------------------------------------------------------
 #Nested dataframe with diagnosis at each visit per cow
