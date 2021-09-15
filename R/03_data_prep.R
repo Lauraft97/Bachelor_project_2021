@@ -25,5 +25,9 @@ fluke_data_IBM <- fluke_data %>%
   distinct(UniqueID,.keep_all = TRUE)
 
 
+# Save data ---------------------------------------------------------------
+
+write_tsv(fluke_data_IBM,"data/03_fluke_data_IBM.tsv")
+
 
 

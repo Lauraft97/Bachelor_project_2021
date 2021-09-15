@@ -59,7 +59,7 @@ SSIR <- function(t,x,p)
 
 #Parameters
 n <- 4
-beta <- diag(c(0.03,0.05,0.02,0.015), c(4,4))
+beta <- diag(c(0.003,0.005,0.002,0.0015), c(4,4))
 gamma <- rep(4/56,4)
 
 ## Initial conditions
