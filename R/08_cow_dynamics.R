@@ -78,7 +78,7 @@ for(k in 2:time){
   #Slaughter
   #Here removing cows more then 4 years old
   Farm <- Farm %>% 
-    filter(DOB > date - 5*365)
+    filter(DOB > date - 4*365)
   
   
   date = date + 1
