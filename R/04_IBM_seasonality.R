@@ -129,11 +129,22 @@ for(k in 2:time){
     
     MC <- Mcer*season*Grazing / Mcer
     
-    MC_prop <- pexp(MC,rate = 1)
+    #MC_prop <- pexp(MC,rate = 1)
     
-    if(MC_prop > 0.187){
-      Farm$State[i] <- 2
-      Farm$E_period[i] <- round(rnorm(1, mean = 5*7, sd = 2*7),0)
+    
+    # If every cow has their own probability then every cow must draw their own
+      #number (0,1) from the distribution
+    
+    #If vectorized (add calculation for the probability)
+    Farm <- Farm %>%  
+      mutate(E_prop = Grazing,
+        Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)))
+    
+    # if(MC_prop > 0.187){
+    #   Farm$State[i] <- 2
+    #   Farm$E_period[i] <- round(rnorm(1, mean = 5*7, sd = 2*7),0)
+    
+    
     }
   }
   
