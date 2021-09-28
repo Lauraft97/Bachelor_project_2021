@@ -28,8 +28,18 @@ fluke_data <- fluke_data %>% mutate(dEPG = if_else(dEPG == "pos",
                                                    TRUE,
                                                    FALSE))
 
+# Weather data --------------------------------------------------------------
+
+weather_data <- load("data/raw_data/weather.rda")
+weather_data <- as.tibble(x = weather)
 
 # Write data --------------------------------------------------------------
 
+#fluke
 write_tsv(x = fluke_data,
           file = "data/01_fluke_data_clean.tsv")
+
+#weather
+write_tsv(x = weather_data,
+          file = "data/01_weather_data.tsv")
+
