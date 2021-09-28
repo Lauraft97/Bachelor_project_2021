@@ -41,7 +41,7 @@ Start.date <- as.Date("2015-04-27")
 #                Grazing = runif(nCows,0.4,0.6))
 
 
-Farm$Group <- factor(Farm$Group, levels=c(1:4))
+#Farm$Group <- factor(Farm$Group, levels=c(1:4))
 
 Farm <- tibble(CowID = 1:nCows,
                Group = rep(1:4,75),
@@ -83,3 +83,14 @@ for(k in 2:time){
   
   date = date + 1
 }
+
+
+# No stocastisity
+# Uniform distribution in slaughter
+# Births: When heifer = 2 years
+# Undersøge hvor mange der slagtes, hvor mange skal så fødes for at holde en 
+# "konstant population"
+
+
+
+
