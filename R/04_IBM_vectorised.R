@@ -22,17 +22,29 @@ nCows <- 300
 nE0 <- 3
 time <- 100
 Mcer <- 10^4
+First_sample <- as.Date("2015-04-27")
+First_DOB <- First_sample - 4*365
 
 # Creating data frame of susceptible cows (average farm size in data 300)
 Farm <- tibble(CowID = 1:nCows,
-               Group = rep(1:4,75),
+               DOB = as.Date(x = rdunif(n = nCows,
+                                        a = as.integer(First_DOB),
+                                        b = as.integer(First_sample)),
+                             origin = "1970-01-01"),
+               Group = case_when(First_sample - DOB <= 10*30 ~ 1,
+                                 First_sample - DOB > 10*30 & First_sample - DOB <= 2*365 ~ 2,
+                                 First_sample - DOB > 2*365 ~ 3),
+               Lactation = 0,
                State = 1,
                E_period = 0,
                I_period = 0,
-               sick_period =0,
+               sick_period = 0,
+               n_calfs = 0,
+               cycle_day = 0,
                Grazing = runif(nCows,0.4,0.6))
 
-Farm$Group <- factor(Farm$Group, levels=c(1:4))
+
+Farm$Group <- factor(Farm$Group, levels=c(1:3))
 
 # Random choose E0 cows
 E0_cows <- sample(1:nCows,
@@ -50,11 +62,11 @@ Farm <- Farm %>%
                               E_period < 0 ~ 0,
                               TRUE ~ 0),
          sick_period = case_when(State == 2 ~ sick_period + 1,
-                                 TRUE ~ 0))
-
-
-# E_period = E_period[E_period < 0] <- 0 
-
+                                 TRUE ~ 0),
+         Lactation = case_when(Group == 3 ~ as.numeric(rbinom(1,1,5/6)),
+                               TRUE ~ 0),
+         cycle_day = case_when(Lactation == 1 ~ round(runif(1,0,300)),
+                               Lactation == 0 & Group == 3 ~ round(runif(1,300,365))))
 
 # If the distribution becomes negative then it will be changed to zero
 
@@ -66,18 +78,15 @@ pnorm(0,49,7) # The likelihood of getting a negative value of very small.
 
 S_Cow <- tibble(S1 = rep(0,time),
                 S2 = rep(0,time),
-                S3 = rep(0,time),
-                S4 = rep(0,time))
+                S3 = rep(0,time))
 
 E_Cow <- tibble(E1 = rep(0,time),
                 E2 = rep(0,time),
-                E3 = rep(0,time),
-                E4 = rep(0,time))
+                E3 = rep(0,time))
 
 I_Cow <- tibble(I1 = rep(0,time),
                 I2 = rep(0,time),
-                I3 = rep(0,time),
-                I4 = rep(0,time))
+                I3 = rep(0,time))
 
 S_Cow[1,] <- Farm %>% group_by(Group, .drop = FALSE) %>%
   filter(State == 1) %>% 
@@ -107,6 +116,20 @@ for(k in 2:time){
   
   # # The E_prop is something that should be calculated and therefore it is just the grazing
   # #factor right now. 
+  
+  #FARM tibble
+  # slagte efter kalve og alder (justerer i forhold til konstant population)
+  # 2 år føde en kalv og rykke gruppe (derved blive lactating (1) og cycle day = 0)
+  # KALVE SÆT TIL 1 INITIELT FOR GRUPPE 3
+  # Gruppe 3: Hvis cycle = 300 rykke fra lactating 1 til 0
+            # Hvis cycle = 365 føde en kalv og lactating (1) og cycle day = 0
+  
+  # Summarizing births 
+  # Tælle kalve der er blevet født i tidsskridtet og fjerne halvdelen (tyre kalve)
+  # Tilføje det fødte antal køer i tibble i gruppe 1, dagens dato osv. 
+  # ID tilføje if statement så ID kun bliver opdateret hvis der er blevet født kalve
+  
+  
   
   Farm <- Farm %>%  
     mutate(E_prop = Grazing*0.01,
@@ -180,7 +203,7 @@ endtime <- Sys.time()
 endtime - starttime                                                                         
 
 
-Results <- list(S_Cow,E_Cow,I_Cow,Eggs)
+Results <- list(S_Cow,E_Cow,I_Cow,Egg_new)
 
 
 
@@ -190,9 +213,7 @@ S_Cow %>% ggplot(mapping = aes(x = 1:time)) +
   geom_line(aes(y = S2,
                 col = "Heifer")) +
   geom_line(aes(y = S3,
-                col = "Primiparous")) +
-  geom_line(aes(y = S4,
-                col = "Multiparous"))
+                col = "Primiparous")) 
 
 
 E_Cow %>% ggplot(mapping = aes(x = 1:time)) +
@@ -201,9 +222,7 @@ E_Cow %>% ggplot(mapping = aes(x = 1:time)) +
   geom_line(aes(y = E2,
                 col = "Heifer")) +
   geom_line(aes(y = E3,
-                col = "Primiparous")) +
-  geom_line(aes(y = E4,
-                col = "Multiparous"))
+                col = "Primiparous")) 
 
 
 I_Cow %>% ggplot(mapping = aes(x = 1:time)) +
@@ -212,9 +231,7 @@ I_Cow %>% ggplot(mapping = aes(x = 1:time)) +
   geom_line(aes(y = I2,
                 col = "Heifer")) +
   geom_line(aes(y = I3,
-                col = "Primiparous")) +
-  geom_line(aes(y = I4,
-                col = "Multiparous"))
+                col = "Primiparous"))
 
 
 
