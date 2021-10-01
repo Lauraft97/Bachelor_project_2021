@@ -260,7 +260,7 @@ for(k in 2:time){
   n_cow_egg <- Farm %>% filter(eggs_pr_5gram > 0) %>% nrow()
 # Add in mutate cow type and therefore how much faeces.   
   
-Egg_new[k] <- sum(Farm$eggs_pr_5gram)*n_cow_egg*3000/5
+Egg_new[k] <- round(sum(Farm$eggs_pr_5gram))*n_cow_egg*3000/5
 
 Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * S_S)
 E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * S_S - alpha * E1_S[k-1])
