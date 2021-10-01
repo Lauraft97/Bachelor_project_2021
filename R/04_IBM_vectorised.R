@@ -20,13 +20,37 @@ source(file ="R/99_functions.R")
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 100
+time <- 300
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 4*365
 date <- First_sample
 ID_no <- nCows
 
+# ODE Parameters --------------------------------------------------------------
+mu_Egg <- 0.1
+lambda_ES <- 2 * 10^(-10)
+S_S <- 10^4
+alpha <- 2/(6*7)
+gamma_S <- 2
+mu_S <- 0.05
+mu_M <- 0.05
+
+#Vectors to fill our in ODE
+Eggs <- c(rep(0,time))
+E1_S <- c(rep(0,time))  
+E2_S <- c(rep(0,time))
+I_S <-  c(rep(0,time))
+R_S <-  c(rep(0,time))
+M <- c(rep(0,time))
+
+Eggs[1] <- 10
+E1_S[1] <- 0
+E2_S[1] <- 0
+I_S[1] <- 0
+R_S[1] <- 0
+M[1] <- 1000
+ 
 # Creating data frame of susceptible cows (average farm size in data 300)
 Farm <- tibble(CowID = 1:nCows,
                DOB = as.Date(x = rdunif(n = nCows,
@@ -114,7 +138,7 @@ I_Cow[1,] <- Farm %>% group_by(Group, .drop = FALSE) %>%
 
 Egg_new <- c(rep(0,time))
 Births <- c(rep(0,time))
-
+Pop <- c(rep(0,time))
 
 starttime <- Sys.time()
 
@@ -136,6 +160,10 @@ for(k in 2:time){
   # ID tilføje if statement så ID kun bliver opdateret hvis der er blevet født kalve
   
   date <- date + 1
+  
+  #Slaughter
+  Farm <- Farm %>% 
+    filter(!(n_calfs >= 3 | date >= DOB + round(runif(1,4.5*365,6*365))))
   
   # Count the number of cows who will have a calf
   Births[k] <- Farm %>% filter(date - DOB == 2*365 | cycle_day == 365) %>% nrow()
@@ -229,11 +257,17 @@ for(k in 2:time){
                                                 ~ runif(1,20,120)*exp(-(0.05*sick_period-(8*30))),
                                                 TRUE ~ 0))
   
+  n_cow_egg <- Farm %>% filter(eggs_pr_5gram > 0) %>% nrow()
 # Add in mutate cow type and therefore how much faeces.   
   
-Egg_new[k] <- sum(Farm$eggs_pr_5gram)
+Egg_new[k] <- sum(Farm$eggs_pr_5gram)*n_cow_egg*3000/5
 
-
+Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * S_S)
+E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * S_S - alpha * E1_S[k-1])
+E2_S[k] <- E2_S[k-1] + (alpha * E1_S[k-1] - alpha * E2_S[k-1])
+I_S[k] <-  I_S[k-1] + (alpha * E2_S[k-1] - mu_S * I_S[k-1])
+R_S[k] <-  R_S[k-1] + (mu_S * I_S[k-1])
+M[k] <- M[k-1] + (gamma_S * I_S[k-1] - mu_M * M[k-1])
 
   #   x <- seq(0,100,0.001)
   # 
@@ -248,7 +282,7 @@ Egg_new[k] <- sum(Farm$eggs_pr_5gram)
   #   
     
 
-
+Pop[k] <- Farm %>% nrow()
 print(k)  
 
 }
@@ -288,7 +322,12 @@ I_Cow %>% ggplot(mapping = aes(x = 1:time)) +
   geom_line(aes(y = I3,
                 col = "Primiparous"))
 
+ggplot(mapping = aes(x=1:200,y = Eggs[1:200])) +
+  geom_line()
 
+ggplot(mapping = aes(x = 1:time,
+                     y = Egg_new)) +
+  geom_line()
 
 
 
