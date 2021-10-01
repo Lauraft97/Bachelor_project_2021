@@ -24,6 +24,8 @@ time <- 100
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 4*365
+date <- First_sample
+ID_no <- nCows
 
 # Creating data frame of susceptible cows (average farm size in data 300)
 Farm <- tibble(CowID = 1:nCows,
@@ -65,8 +67,11 @@ Farm <- Farm %>%
                                  TRUE ~ 0),
          Lactation = case_when(Group == 3 ~ as.numeric(rbinom(1,1,5/6)),
                                TRUE ~ 0),
-         cycle_day = case_when(Lactation == 1 ~ round(runif(1,0,300)),
-                               Lactation == 0 & Group == 3 ~ round(runif(1,300,365))))
+         cycle_day = case_when(Lactation == 1 ~ round(runif(1,1,305)),
+                               Lactation == 0 & Group == 3 ~ round(runif(1,306,365))),
+         n_calfs = case_when(Group == 3 & First_sample - DOB < 3*365 ~ 1,
+                             Group == 3 & (First_sample - DOB >= 3*365 & First_sample - DOB <= 4*365) ~ 2,
+                             TRUE ~ 0))
 
 # If the distribution becomes negative then it will be changed to zero
 
@@ -108,6 +113,7 @@ I_Cow[1,] <- Farm %>% group_by(Group, .drop = FALSE) %>%
 
 
 Egg_new <- c(rep(0,time))
+Births <- c(rep(0,time))
 
 
 starttime <- Sys.time()
@@ -129,7 +135,53 @@ for(k in 2:time){
   # Tilføje det fødte antal køer i tibble i gruppe 1, dagens dato osv. 
   # ID tilføje if statement så ID kun bliver opdateret hvis der er blevet født kalve
   
+  date <- date + 1
   
+  # Count the number of cows who will have a calf
+  Births[k] <- Farm %>% filter(date - DOB == 2*365 | cycle_day == 365) %>% nrow()
+  
+  # Removing half or random if unequal number since some calf will be male
+  if((Births[k] %% 2) != 0){
+    Births[k] <- (Births[k] - 1)/2 + rbinom(1,1,0.5)  
+  } else{
+    Births[k] <- Births[k]/2 
+  }
+  
+  #Updating ID 
+  if(Births[k] > 0){
+    ID_no <- ID_no + Births[k]
+  } 
+
+  # Moving through the different groups (cow population dynamics)
+  Farm <- Farm %>% mutate(Group = case_when(date - DOB > 305 & date - DOB < 2*365 ~ 2,
+                                      date - DOB == 2*365 ~ 3,
+                                      TRUE ~ as.numeric(Group)),
+                          n_calfs = case_when(date - DOB == 2*365 ~ 1,
+                                              cycle_day == 365 ~ n_calfs + 1,
+                                              TRUE ~ n_calfs),
+                          cycle_day = case_when(cycle_day == 365 ~ 1,
+                                                Group == 3 & is.na(cycle_day) ~ 1,
+                                                cycle_day > 0 ~ cycle_day + 1,
+                                                TRUE ~ cycle_day),
+                          Lactation = case_when(cycle_day >= 1 & cycle_day <= 305 ~ 1,
+                                                cycle_day > 305 ~ 0))
+  
+  # Add calf to the population
+  if(Births[k] > 0){
+    new_calfs <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
+                   DOB = date,
+                   Group = 1,
+                   Lactation = NA,
+                   State = 1,
+                   E_period = 0,
+                   I_period = 0,
+                   sick_period = 0,
+                   n_calfs = 0,
+                   cycle_day = NA,
+                   Grazing = runif(Births[k],0.4,0.6))
+    
+    Farm <- bind_rows(Farm,new_calfs)
+  }
   
   Farm <- Farm %>%  
     mutate(E_prop = Grazing*0.01,
@@ -146,6 +198,9 @@ for(k in 2:time){
            sick_period = case_when(State == 2 & E_period >= 0 ~ sick_period + 1,
                                    State == 3 ~ sick_period + 1,
                                    TRUE ~ 0))
+  
+  
+  
 
   S_Cow[k,] <- Farm %>% group_by(Group, .drop = FALSE) %>%
     filter(State == 1) %>% 
