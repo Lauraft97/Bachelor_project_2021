@@ -5,6 +5,7 @@ rm(list = ls())
 set.seed(1234)
 
 library(tidyverse)
+library(lubridate)
 
 
 # Import functions --------------------------------------------------------
@@ -16,11 +17,17 @@ source(file ="R/99_functions.R")
 # - Each cow has a grazing intensity which is an expression of the likelihood of grazing.
 # - Calf are not on grass for the first 4-6 month of their life
 
+# Time values
+
+month5 <- 152 
+month10 <- 304
+year <- 365
+
 
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 365
+time <- 365*3
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 4*365
@@ -57,9 +64,9 @@ Farm <- tibble(CowID = 1:nCows,
                                         a = as.integer(First_DOB),
                                         b = as.integer(First_sample)),
                              origin = "1970-01-01"),
-               Group = case_when(First_sample - DOB <= 10*30 ~ 1,
-                                 First_sample - DOB > 10*30 & First_sample - DOB <= 2*365 ~ 2,
-                                 First_sample - DOB > 2*365 ~ 3),
+               Group = case_when(First_sample - DOB <= month10 ~ 1,
+                                 First_sample - DOB > month10 & First_sample - DOB <= 2*year ~ 2,
+                                 First_sample - DOB > 2*year ~ 3),
                Lactation = 0,
                State = 1,
                E_period = 0,
@@ -67,7 +74,8 @@ Farm <- tibble(CowID = 1:nCows,
                sick_period = 0,
                n_calfs = 0,
                cycle_day = 0,
-               Grazing = 0)
+               Grazing = 0,
+               Age = as.numeric(First_sample-DOB))
 
 
 Farm$Group <- factor(Farm$Group, levels=c(1:3))
@@ -89,35 +97,27 @@ Farm <- Farm %>%
                               TRUE ~ 0),
          sick_period = case_when(State == 2 ~ sick_period + 1,
                                  TRUE ~ 0),
-         Lactation = case_when(Group == 3 ~ as.numeric(rbinom(1,1,5/6)),
+         Lactation = case_when(Age >= 3*year ~ as.numeric(rbinom(1,1,5/6)),
                                TRUE ~ 0),
-         cycle_day = case_when(Lactation == 1 & 
-                                 First_sample - DOB <= (365*2+100) 
-                               ~ round(runif(1,1,100)),
-                               Lactation == 1 & 
-                                 First_sample - DOB > (365*2+100) & 
-                                 First_sample - DOB <= (365*2+200)
-                               ~ round(runif(1,101,200)),
-                               Lactation == 1 & 
-                                 First_sample - DOB > (365*2+200) & 
-                                 First_sample - DOB <= (365*2+305)
-                               ~ round(runif(1,201,305)),
-                               Lactation == 1 & 
-                                 First_sample - DOB > (365*2+305) 
-                               ~ round(runif(1,1,305)),
-                               Lactation == 0 & Group == 3 ~ round(runif(1,306,365))),
-         n_calfs = case_when(Group == 3 & First_sample - DOB < 3*365 ~ 1,
-                             Group == 3 & (First_sample - DOB >= 3*365 & First_sample - DOB <= 4*365) ~ 2,
+         cycle_day = case_when(Lactation == 1 ~ round(runif(1,1,month10)),
+                               Lactation == 0 & Age >= 3*year ~ 
+                                 round(runif(1,month10+1,year)),
+                               Group ==  3 & Age < 3*year ~ Age-2*year),
+         Lactation = case_when(Group ==  3 & Age < 3*year & cycle_day >= 1 & cycle_day <= month10 ~ 
+                                 1,
+                               Group ==  3 & Age < 3*year & cycle_day > month10 ~ 0,
+                               TRUE ~ Lactation),
+         n_calfs = case_when(Group == 3 & Age < 3*year ~ 1,
+                             Group == 3 & (Age >= 3*year & Age <= 4*year) ~ 2,
                              TRUE ~ 0),
-         Grazing = case_when(cycle_day >= 0 ~ runif(1,0.2,0.4),#Milking cows 
+         Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.5),#Milking cows 
                              #Calfs under 5 months do note graze
-                             DOB <= 5*30 ~ 0,
-                             #Calfs 5-9 month graze with heifers (2 yers of age) 
-                             DOB > 5*30 & DOB <= 2*365 ~ runif(1,0.2,0.4), 
+                             Age <= month5 ~ runif(1,0,0.1), 
+                             #Calfs 5-9 month graze with heifers (2 years of age) 
+                             (Group == 1 & Age > month5) | Group == 2 ~ runif(1,0.5,1), 
                              #Dry cows between lactation
-                             TRUE ~ runif(1,0.4,0.6)))
+                             TRUE ~ runif(1,0.2,0.8)))
 
-         
         
 # Examination of the normal distribution used
 #pnorm(0,49,7) # The likelihood of getting a negative value of very small. 
@@ -202,7 +202,8 @@ for(k in 2:time){
   } 
   
   # Moving through the different groups (cow population dynamics)
-  Farm <- Farm %>% mutate(Group = case_when(date - DOB > 305 & date - DOB < 2*365 ~ 2,
+  Farm <- Farm %>% mutate(Age = date - DOB,
+                          Group = case_when(date - DOB > 305 & date - DOB < 2*365 ~ 2,
                                             date - DOB == 2*365 ~ 3,
                                             TRUE ~ as.numeric(Group)),
                           n_calfs = case_when(date - DOB == 2*365 ~ 1,
@@ -214,10 +215,16 @@ for(k in 2:time){
                                                 TRUE ~ cycle_day),
                           Lactation = case_when(cycle_day >= 1 & cycle_day <= 305 ~ 1,
                                                 cycle_day > 305 ~ 0),
-                          Grazing = case_when(cycle_day >= 0 ~ runif(1,0.2,0.4),
-                                              DOB <= 5*30 ~ 0, 
-                                              DOB > 5*30 & DOB <= 2*365 ~ runif(1,0.2,0.4),
-                                              TRUE ~ runif(1,0.4,0.6)))
+                          Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.5),#Milking cows 
+                                              #Calfs under 5 months do note graze
+                                              Age <= month5 ~ runif(1,0,0.1), 
+                                              #Calfs 5-9 month graze with heifers (2 years of age) 
+                                              (Group == 1 & Age > month5) | Group == 2 ~ runif(1,0.5,1), 
+                                              #Dry cows between lactation
+                                              TRUE ~ runif(1,0.2,0.8)),
+                          Grazing = if_else(month(date) >= 4 & month(date) < 11,
+                                            Grazing*1,
+                                            Grazing*0.05))
   
   
   # Add calf to the population
@@ -303,17 +310,7 @@ for(k in 2:time){
   R_S[k] <-  R_S[k-1] + (mu_S * I_S[k-1])
   M[k] <- M[k-1] + (gamma_S * I_S[k-1] - mu_M * M[k-1])
   
-  #   x <- seq(0,100,0.001)
-  # 
-  # inv_logit <- function(x) {
-  #   return(1 / (1 + exp(- x)))
-  # }
-  # 
-  # y <- inv_logit(x)
-  # 
-  # plot(y ~ x)
-  # 
-  #   
+
   
   
   Pop[k] <- Farm %>% nrow()
