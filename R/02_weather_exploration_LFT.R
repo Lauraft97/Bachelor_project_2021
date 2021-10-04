@@ -24,7 +24,7 @@ temperature <- weather %>% filter(Date >= as.Date("2015-01-01")) %>%
                ungroup()
 
 # For the period relevant for our simulation the difference in mean and median temperatures are examined
-period <- weather %>% filter(Date >= as.Date("2015-01-01") & Date <= as.Date("2016-01-01")) %>% 
+period <- weather %>% filter(Date >= as.Date("2015-01-01") & Date <= as.Date("2015-03-01")) %>% 
   group_by(location,Date) %>% 
   summarise(Day_max_temp = max(temp_max),
             Day_max_med = median(temp_max),
@@ -41,7 +41,7 @@ period <- weather %>% filter(Date >= as.Date("2015-01-01") & Date <= as.Date("20
   ungroup()
 
 period %>% filter(location == "Frederikssund") %>% 
-           ggplot(aes(x = 1:(732/2))) +
+           ggplot(aes(x = 1:60)) +
   geom_line(aes(y = Day_max_med,
                 col = "Median")) +
   geom_line(aes(y = Day_max_mean,
@@ -51,7 +51,7 @@ period %>% filter(location == "Frederikssund") %>%
 
 
 period %>% filter(location == "Frederikssund") %>% 
-  ggplot(aes(x = 1:(732/2))) +
+  ggplot(aes(x = 1:60)) +
   geom_line(aes(y = median_temp,
                 col = "Median")) +
   geom_line(aes(y = mean_temp,

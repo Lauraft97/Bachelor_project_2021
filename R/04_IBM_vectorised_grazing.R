@@ -27,7 +27,7 @@ year <- 365
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 365*3
+time <- 365
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 4*365
@@ -37,7 +37,7 @@ ID_no <- nCows
 # ODE Parameters --------------------------------------------------------------
 mu_Egg <- 0.1
 lambda_ES <- 2 * 10^(-10)
-S_S <- 10^4
+Snail_pop0 <- 10^4
 alpha <- 2/(6*7)
 gamma_S <- 2
 mu_S <- 0.05
@@ -50,6 +50,7 @@ E2_S <- c(rep(0,time))
 I_S <-  c(rep(0,time))
 R_S <-  c(rep(0,time))
 M <- c(rep(0,time))
+Snail_pop <- c(rep(0,time))
 
 Eggs[1] <- 10
 E1_S[1] <- 0
@@ -57,6 +58,7 @@ E2_S[1] <- 0
 I_S[1] <- 0
 R_S[1] <- 0
 M[1] <- 1000
+Snail_pop[1] <- seasonality_snail(0.9,2*pi/year,-25,1,1)*Snail_pop0
 
 # Creating data frame of susceptible cows (average farm size in data 300)
 Farm <- tibble(CowID = 1:nCows,
@@ -303,8 +305,16 @@ for(k in 2:time){
   
   Egg_new[k] <- round(sum(Farm$eggs_pr_5gram))*n_cow_egg*3000/5
   
-  Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * S_S)
-  E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * S_S - alpha * E1_S[k-1])
+  #Seasonal function for snail population
+  
+  seasonality_snail <- function(a,b,c,d,x){
+    f <- a*sin(b*(x-c))+d
+    return(f)
+  }
+  
+  Snail_pop[k] <- seasonality_snail(0.9,2*pi/year,-25,1,k-1)*Snail_pop0
+  Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * Snail_pop[k-1])
+  E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * Snail_pop[k-1] - alpha * E1_S[k-1])
   E2_S[k] <- E2_S[k-1] + (alpha * E1_S[k-1] - alpha * E2_S[k-1])
   I_S[k] <-  I_S[k-1] + (alpha * E2_S[k-1] - mu_S * I_S[k-1])
   R_S[k] <-  R_S[k-1] + (mu_S * I_S[k-1])
@@ -359,11 +369,8 @@ ggplot(mapping = aes(x = 1:time,
 
 
 
-# T = 2*365
-# j = 365 #Period = 4
-# tr = 1:time
-# y = 2*cos(2*pi*tr/j)
-#plot(season, type="o", xlab="time", main=" A quarterly series with trend")
-# abline(v = c(1, 4), col = "red", lty=2)
+ggplot(mapping = aes(x = 1:time,
+                     y = Snail_pop)) +
+  geom_line()
 
 
