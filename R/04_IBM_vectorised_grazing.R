@@ -10,6 +10,7 @@ library(lubridate)
 
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")
+source(file = "R/04x_cow_dynamics.R")
 
 
 # Model IBM ------------
@@ -27,12 +28,15 @@ year <- 365
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 365
+time <- 365*3
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
-First_DOB <- First_sample - 4*365
+First_DOB <- First_sample - 3.75*year
 date <- First_sample
 ID_no <- nCows
+
+#Placeholder to fill out
+source(file = "R/98_placeholders.R")
 
 # ODE Parameters --------------------------------------------------------------
 mu_Egg <- 0.1
@@ -43,22 +47,13 @@ gamma_S <- 2
 mu_S <- 0.05
 mu_M <- 0.05
 
-#Vectors to fill our in ODE
-Eggs <- c(rep(0,time))
-E1_S <- c(rep(0,time))  
-E2_S <- c(rep(0,time))
-I_S <-  c(rep(0,time))
-R_S <-  c(rep(0,time))
-M <- c(rep(0,time))
-Snail_pop <- c(rep(0,time))
-
 Eggs[1] <- 10
 E1_S[1] <- 0
 E2_S[1] <- 0
 I_S[1] <- 0
 R_S[1] <- 0
 M[1] <- 1000
-Snail_pop[1] <- seasonality_snail(0.9,2*pi/year,-25,1,1)*Snail_pop0
+Snail_pop[1] <- season_snail_pop(0.9,2*pi/year,-25,1,1)*Snail_pop0
 
 # Creating data frame of susceptible cows (average farm size in data 300)
 Farm <- tibble(CowID = 1:nCows,
@@ -89,55 +84,10 @@ E0_cows <- sample(1:nCows,
 
 
 # Randomly exposed nE0 number of cows (change state to 2) and generating period to be in E
-Farm <- Farm %>% 
-  rowwise() %>% 
-  mutate(State = if_else(CowID %in% E0_cows,
-                         2,
-                         1),
-         E_period = case_when(State == 2 ~ round(rnorm(1,mean = 7*7,sd = 7)),
-                              E_period < 0 ~ 0,
-                              TRUE ~ 0),
-         sick_period = case_when(State == 2 ~ sick_period + 1,
-                                 TRUE ~ 0),
-         Lactation = case_when(Age >= 3*year ~ as.numeric(rbinom(1,1,5/6)),
-                               TRUE ~ 0),
-         cycle_day = case_when(Lactation == 1 ~ round(runif(1,1,month10)),
-                               Lactation == 0 & Age >= 3*year ~ 
-                                 round(runif(1,month10+1,year)),
-                               Group ==  3 & Age < 3*year ~ Age-2*year),
-         Lactation = case_when(Group ==  3 & Age < 3*year & cycle_day >= 1 & cycle_day <= month10 ~ 
-                                 1,
-                               Group ==  3 & Age < 3*year & cycle_day > month10 ~ 0,
-                               TRUE ~ Lactation),
-         n_calfs = case_when(Group == 3 & Age < 3*year ~ 1,
-                             Group == 3 & (Age >= 3*year & Age <= 4*year) ~ 2,
-                             TRUE ~ 0),
-         Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.5),#Milking cows 
-                             #Calfs under 5 months do note graze
-                             Age <= month5 ~ runif(1,0,0.1), 
-                             #Calfs 5-9 month graze with heifers (2 years of age) 
-                             (Group == 1 & Age > month5) | Group == 2 ~ runif(1,0.5,1), 
-                             #Dry cows between lactation
-                             TRUE ~ runif(1,0.2,0.8)))
+Farm <- cow_pop_init(Farm)
 
-        
 # Examination of the normal distribution used
 #pnorm(0,49,7) # The likelihood of getting a negative value of very small. 
-
-
-# Data frames to store results for each group
-
-S_Cow <- tibble(S1 = rep(0,time),
-                S2 = rep(0,time),
-                S3 = rep(0,time))
-
-E_Cow <- tibble(E1 = rep(0,time),
-                E2 = rep(0,time),
-                E3 = rep(0,time))
-
-I_Cow <- tibble(I1 = rep(0,time),
-                I2 = rep(0,time),
-                I3 = rep(0,time))
 
 S_Cow[1,] <- Farm %>% group_by(Group, .drop = FALSE) %>%
   filter(State == 1) %>% 
@@ -156,11 +106,6 @@ I_Cow[1,] <- Farm %>% group_by(Group, .drop = FALSE) %>%
   tally %>% 
   pull() %>% 
   t()
-
-
-Egg_new <- c(rep(0,time))
-Births <- c(rep(0,time))
-Pop <- c(rep(0,time))
 
 Pop[1] <- nCows
 starttime <- Sys.time()
@@ -186,10 +131,10 @@ for(k in 2:time){
   
   #Slaughter
   Farm <- Farm %>% 
-    filter(!(n_calfs >= 3 | date >= DOB + round(runif(1,3.75*365,6*365))))
+    filter(!(n_calfs >= 3 | date >= DOB + round(runif(1,3.75*year,6*year))))
   
   # Count the number of cows who will have a calf
-  Births[k] <- Farm %>% filter(date - DOB == 2*365 | cycle_day == 365) %>% nrow()
+  Births[k] <- Farm %>% filter(Age == 2*year | cycle_day == year) %>% nrow()
   
   # Removing half or random if unequal number since some calf will be male
   if((Births[k] %% 2) != 0){
@@ -204,30 +149,8 @@ for(k in 2:time){
   } 
   
   # Moving through the different groups (cow population dynamics)
-  Farm <- Farm %>% mutate(Age = date - DOB,
-                          Group = case_when(date - DOB > 305 & date - DOB < 2*365 ~ 2,
-                                            date - DOB == 2*365 ~ 3,
-                                            TRUE ~ as.numeric(Group)),
-                          n_calfs = case_when(date - DOB == 2*365 ~ 1,
-                                              cycle_day == 365 ~ n_calfs + 1,
-                                              TRUE ~ n_calfs),
-                          cycle_day = case_when(cycle_day == 365 ~ 1,
-                                                Group == 3 & is.na(cycle_day) ~ 1,
-                                                cycle_day > 0 ~ cycle_day + 1,
-                                                TRUE ~ cycle_day),
-                          Lactation = case_when(cycle_day >= 1 & cycle_day <= 305 ~ 1,
-                                                cycle_day > 305 ~ 0),
-                          Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.5),#Milking cows 
-                                              #Calfs under 5 months do note graze
-                                              Age <= month5 ~ runif(1,0,0.1), 
-                                              #Calfs 5-9 month graze with heifers (2 years of age) 
-                                              (Group == 1 & Age > month5) | Group == 2 ~ runif(1,0.5,1), 
-                                              #Dry cows between lactation
-                                              TRUE ~ runif(1,0.2,0.8)),
-                          Grazing = if_else(month(date) >= 4 & month(date) < 11,
-                                            Grazing*1,
-                                            Grazing*0.05))
-  
+  # 04x_cow_dynamics.R
+  Farm <- cow_dynamics(Farm)
   
   # Add calf to the population
   if(Births[k] > 0){
@@ -241,7 +164,7 @@ for(k in 2:time){
                         sick_period = 0,
                         n_calfs = 0,
                         cycle_day = NA,
-                        Grazing = runif(Births[k],0.1,0.2))
+                        Grazing = runif(Births[k],0,0.1))
     
     Farm <- bind_rows(Farm,new_calfs)
   }
@@ -253,7 +176,7 @@ for(k in 2:time){
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
                              TRUE ~ State),
-           E_period = case_when(State == 2 & E_period == 0 ~ round(rnorm(1,mean = 7*7,sd = 7)),
+           E_period = case_when(State == 2 & E_period == 0 ~ conv_neg(round(rnorm(1,mean = 7*7,sd = 7))),
                                 State == 2 & E_period > 0 ~ E_period - 1,
                                 E_period < 0 ~ 0,
                                 TRUE ~ 0),
@@ -285,15 +208,8 @@ for(k in 2:time){
     pull() %>% 
     t()
   
-  # Logistic growth function which can be used to describe the first 3 months
-  
-  logistic_growth <- function(max,halfway,rate,k){
-    f <- max/(1+exp(-rate*(k-halfway)))
-    return(f)
-  }
-  
   Farm <- Farm %>% mutate(eggs_pr_5gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                    ~ logistic_growth(round(runif(1,20,120)),75,0.2,sick_period),
+                                                    ~ log_growth(round(runif(1,20,120)),75,0.2,sick_period),
                                                     sick_period > 3*30 & sick_period <= 8*30 
                                                     ~ runif(1,20,120),
                                                     sick_period > 8*30 
@@ -305,23 +221,13 @@ for(k in 2:time){
   
   Egg_new[k] <- round(sum(Farm$eggs_pr_5gram))*n_cow_egg*3000/5
   
-  #Seasonal function for snail population
-  
-  seasonality_snail <- function(a,b,c,d,x){
-    f <- a*sin(b*(x-c))+d
-    return(f)
-  }
-  
-  Snail_pop[k] <- seasonality_snail(0.9,2*pi/year,-25,1,k-1)*Snail_pop0
+  Snail_pop[k] <- season_snail_pop(0.9,2*pi/year,-25,1,k)*Snail_pop0
   Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * Snail_pop[k-1])
   E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * Snail_pop[k-1] - alpha * E1_S[k-1])
   E2_S[k] <- E2_S[k-1] + (alpha * E1_S[k-1] - alpha * E2_S[k-1])
   I_S[k] <-  I_S[k-1] + (alpha * E2_S[k-1] - mu_S * I_S[k-1])
   R_S[k] <-  R_S[k-1] + (mu_S * I_S[k-1])
   M[k] <- M[k-1] + (gamma_S * I_S[k-1] - mu_M * M[k-1])
-  
-
-  
   
   Pop[k] <- Farm %>% nrow()
   print(k)  
