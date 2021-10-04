@@ -276,8 +276,15 @@ for(k in 2:time){
     pull() %>% 
     t()
   
+  # Logistic growth function which can be used to describe the first 3 months
+  
+  logistic_growth <- function(max,halfway,rate,k){
+    f <- max/(1+exp(-rate*(k-halfway)))
+    return(f)
+  }
+  
   Farm <- Farm %>% mutate(eggs_pr_5gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                    ~ 0.5*runif(1,20,120),
+                                                    ~ logistic_growth(round(runif(1,20,120)),75,0.2,sick_period),
                                                     sick_period > 3*30 & sick_period <= 8*30 
                                                     ~ runif(1,20,120),
                                                     sick_period > 8*30 
