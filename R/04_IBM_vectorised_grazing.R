@@ -230,7 +230,7 @@ for(k in 2:time){
   M[k] <- M[k-1] + (gamma_S * I_S[k-1] - mu_M * M[k-1])
   
   Pop[k] <- Farm %>% nrow()
-  print(k)  
+  print(time-k)  
   
 }
 
