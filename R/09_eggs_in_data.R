@@ -3,6 +3,7 @@
 rm(list = ls())
 
 library(tidyverse)
+library(statmod)
 
 
 # Import functions --------------------------------------------------------
@@ -36,7 +37,22 @@ EPG_data %>% ggplot(mapping = aes(x = Visit,
              facet_wrap(~Farm, scales = "free") +
              theme(legend.position = "none") 
 
+#Mean of positive EPG values
+EPG_data %>% filter(EPG > 0) %>% summarize(EPG_mean = mean(EPG))
 
+#Saving with values > 0
+a <- EPG_data %>% filter(EPG > 0)
 
+# Inverse Gaussian distribution 
+tibble(x = rinvgauss(273,mean = 1.52, shape = 0.2)) %>% ggplot(mapping = aes(x = x)) + 
+  geom_density()
 
+# Combining data
+data <- bind_cols(a,tibble(x = rinvgauss(273,mean = 1.52, shape = 0.35)))
+
+# Comparing distribution and distribution of egg in data
+data %>% filter(EPG < 20) %>%  
+  ggplot() + geom_density(mapping = aes(x = EPG)) +
+  geom_density(mapping = aes(x = x,
+                             col = "red"))
 

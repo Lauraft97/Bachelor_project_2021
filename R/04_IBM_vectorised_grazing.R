@@ -6,11 +6,14 @@ set.seed(1234)
 
 library(tidyverse)
 library(lubridate)
+library(statmod)
 
 
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")
 source(file = "R/04x_cow_dynamics.R")
+source(file = "R/11_sunrise_sunset_data.R")
+source(file = "R/10_ODE_rates.R")
 
 
 # Model IBM ------------
@@ -28,7 +31,7 @@ year <- 365
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 365*3
+time <- 4*365
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 3.75*year
@@ -39,15 +42,15 @@ ID_no <- nCows
 source(file = "R/98_placeholders.R")
 
 # ODE Parameters --------------------------------------------------------------
-mu_Egg <- 0.1
-lambda_ES <- 2 * 10^(-10)
+mu_Egg <- Rates(date)[2]
+lambda_ES <- Rates(date)[1]
 Snail_pop0 <- 10^4
 alpha <- 2/(6*7)
 gamma_S <- 2
 mu_S <- 0.05
 mu_M <- 0.05
 
-Eggs[1] <- 10
+Eggs[1] <- 0
 E1_S[1] <- 0
 E2_S[1] <- 0
 I_S[1] <- 0
@@ -208,18 +211,24 @@ for(k in 2:time){
     pull() %>% 
     t()
   
-  Farm <- Farm %>% mutate(eggs_pr_5gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                    ~ log_growth(round(runif(1,20,120)),75,0.2,sick_period),
+  Farm <- Farm %>% mutate(eggs_pr_gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
+                                                    ~ log_growth(round(rinvgauss(1,mean = 1.52, shape = 0.35),2),75,0.2,sick_period),
                                                     sick_period > 3*30 & sick_period <= 8*30 
-                                                    ~ runif(1,20,120),
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.35),2),
                                                     sick_period > 8*30 
-                                                    ~ runif(1,20,120)*exp(-(0.05*sick_period-(8*30))),
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.35),2)*exp(-(0.05*(sick_period-(8*30)))),
                                                     TRUE ~ 0))
   
-  n_cow_egg <- Farm %>% filter(eggs_pr_5gram > 0) %>% nrow()
+  Egg_new[k] <- Farm %>% filter(eggs_pr_gram > 0) %>% 
+                mutate(egg_excreted = eggs_pr_gram * 3000) %>%
+                ungroup() %>% 
+                summarise(sum(egg_excreted)) %>% pull()
+  
   # Add in mutate cow type and therefore how much faeces.   
   
-  Egg_new[k] <- round(sum(Farm$eggs_pr_5gram))*n_cow_egg*3000/5
+  #Calcuting rates
+  mu_Egg <- Rates(date)[2]
+  lambda_ES <- Rates(date)[1]
   
   Snail_pop[k] <- season_snail_pop(0.9,2*pi/year,-25,1,k)*Snail_pop0
   Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * Snail_pop[k-1])
@@ -228,6 +237,12 @@ for(k in 2:time){
   I_S[k] <-  I_S[k-1] + (alpha * E2_S[k-1] - mu_S * I_S[k-1])
   R_S[k] <-  R_S[k-1] + (mu_S * I_S[k-1])
   M[k] <- M[k-1] + (gamma_S * I_S[k-1] - mu_M * M[k-1])
+  
+  
+  if(Eggs[k] < 0){
+    Eggs[k] = 0
+  }
+  
   
   Pop[k] <- Farm %>% nrow()
   print(time-k)  
@@ -278,5 +293,21 @@ ggplot(mapping = aes(x = 1:time,
 ggplot(mapping = aes(x = 1:time,
                      y = Snail_pop)) +
   geom_line()
+
+
+
+ggplot(mapping = aes(x = 1:time,
+                     y = Egg_new)) +
+  geom_line()
+
+ggplot(mapping = aes(x = 1:time,
+                     y = Eggs)) +
+  geom_line()
+
+ggplot(mapping = aes(x = 1:time,
+                     y = M)) +
+  geom_line()
+
+
 
 

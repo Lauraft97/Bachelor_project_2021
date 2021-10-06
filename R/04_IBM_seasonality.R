@@ -238,11 +238,4 @@ I_Cow %>% ggplot(mapping = aes(x = 1:time)) +
 
 
 
-# T = 2*365
-# j = 365 #Period = 4
-# tr = 1:time
-# y = 2*cos(2*pi*tr/j)
-#plot(season, type="o", xlab="time", main=" A quarterly series with trend")
-# abline(v = c(1, 4), col = "red", lty=2)
-
 
