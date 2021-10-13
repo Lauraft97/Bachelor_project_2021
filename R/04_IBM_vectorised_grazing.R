@@ -31,7 +31,7 @@ year <- 365
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 4*365
+time <- 2*365
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 3.75*year
@@ -229,8 +229,10 @@ for(k in 2:time){
   #Calcuting rates
   mu_Egg <- Rates(date)[2]
   lambda_ES <- Rates(date)[1]
+  delta_snail <- Rates(date)[3]
   
-  Snail_pop[k] <- season_snail_pop(0.9,2*pi/year,-25,1,k)*Snail_pop0
+  #Snail_pop[k] <- season_snail_pop(0.9,2*pi/year,-25,1,k)*Snail_pop0
+  Snail_pop[k] <- delta_snail*Snail_pop0
   Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * Snail_pop[k-1])
   E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * Snail_pop[k-1] - alpha * E1_S[k-1])
   E2_S[k] <- E2_S[k-1] + (alpha * E1_S[k-1] - alpha * E2_S[k-1])
@@ -308,6 +310,9 @@ ggplot(mapping = aes(x = 1:time,
                      y = M)) +
   geom_line()
 
+ggplot(mapping = aes(x = 1:time,
+                     y = E1_S)) +
+  geom_line()
 
 
 

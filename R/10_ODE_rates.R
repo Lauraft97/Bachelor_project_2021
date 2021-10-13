@@ -55,24 +55,27 @@ Rates <- function(date){
   if(sum(DD$Temp_case) == 2){
     lambda_ES <- 0 #No snails get infected 
     mu_egg <- 0.6
+    delta_snail <- runif(1,0.1,0.5)
   }
   
   if(sum(DD$Temp_case) == 3){
     DD <- DD %>% filter(mean_temp >= 10)
     lambda_ES <- log_growth(1,15,0.5,DD$mean_temp)*0.0000005 
     mu_egg <- (1-log_growth(1,15,0.5,DD$mean_temp))*0.6
+    delta_snail <- runif(1,0.5,1.2)
   }
   
   if(sum(DD$Temp_case == 2) == 2){
     lambda_ES <- mean(log_growth(1,15,0.5,DD$mean_temp)*0.0000005) 
     mu_egg <- mean((1-log_growth(1,15,0.5,DD$mean_temp))*0.6)
-    
+    delta_snail <- runif(1,1.2,1.9)
   }
   
   if(sum(DD$Temp_case == 3) == 1 & sum(DD$Temp_case) == 4){
     DD <- DD %>% filter(mean_temp >= 10)
     lambda_ES <- 0 
     mu_egg <- (1-log_growth(1,15,0.5,DD$mean_temp))*0.6
+    delta_snail <- runif(1,0.2,0.3)
      
   }
   
@@ -80,10 +83,11 @@ Rates <- function(date){
     mu_egg <- mean((1-log_growth(1,15,0.5,DD$mean_temp))*0.6)
     DD <- DD %>% filter(mean_temp <= 25)
     lambda_ES <- log_growth(1,15,0.5,DD$mean_temp)*0.0000005
+    delta_snail <- runif(1,1.2,1.9)
   }
   
   
-  Rates <- c(lambda_ES,mu_egg)
+  Rates <- c(lambda_ES,mu_egg,delta_snail)
   return(Rates) 
   
 }

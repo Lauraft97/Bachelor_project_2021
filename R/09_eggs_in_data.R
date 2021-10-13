@@ -35,7 +35,13 @@ EPG_data %>% ggplot(mapping = aes(x = Visit,
                                   y = EPG)) +
              geom_point(mapping = aes(col = UniqueID)) +
              facet_wrap(~Farm, scales = "free") +
-             theme(legend.position = "none") 
+             theme(legend.position = "none")
+
+
+#ECDF plot of the faecal egg count
+EPG_data %>% filter(EPG > 0 & EPG < 30) %>% ggplot(aes(EPG)) + stat_ecdf(geom = "step")
+
+
 
 #Mean of positive EPG values
 EPG_data %>% filter(EPG > 0) %>% summarize(EPG_mean = mean(EPG))

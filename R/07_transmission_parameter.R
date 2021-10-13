@@ -31,6 +31,13 @@ fluke_diag <- fluke_data %>% rowwise() %>%
                     na.rm = TRUE),
          Diag = if_else(Diag > 0, TRUE, FALSE))
 
+a <- fluke_data %>% filter(dEPG == TRUE)
+
+a %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
+fluke_diag %>% filter(Diag == TRUE) %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
+
+fluke_data %>% group_by(Farm) %>% distinct(UniqueID) %>%  summarise(n = n())
+
 Farm_name <- c("C1","C2","O1","O2")
 
 Visit_name <- c("A","B","C","D","E","F","G")
@@ -79,9 +86,11 @@ n_days[k,] <- diff(dates)
 # Infected per visit per cow susceptible in cohort
 I_pr_cow <- n_Infected / n_cow
 
+I_pr_cow[,-1]
+
 I_pr_cow_pr_day <- I_pr_cow / n_days
 
-
+I_pr_cow_pr_day[,-1]
 
 
 
