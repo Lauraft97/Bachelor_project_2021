@@ -26,7 +26,9 @@ log_growth <- function(max,halfway,rate,k){
 }
 
 #Seasonal function for snail population
-season_snail_pop <- function(a,b,c,d,x){
+#a=amplitude, b=wave number, c=right shift, d=vertical shift
+
+sine <- function(a,b,c,d,x){
   f <- a*sin(b*(x-c))+d
   return(f)
 }
