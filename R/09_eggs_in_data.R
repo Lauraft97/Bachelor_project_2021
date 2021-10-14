@@ -39,7 +39,7 @@ EPG_data %>% ggplot(mapping = aes(x = Visit,
 
 
 #ECDF plot of the faecal egg count
-EPG_data %>% filter(EPG > 0 & EPG < 30) %>% ggplot(aes(EPG)) + stat_ecdf(geom = "step")
+EPG_data %>% filter(EPG > 0) %>% ggplot(aes(EPG)) + stat_ecdf(geom = "point")
 
 
 

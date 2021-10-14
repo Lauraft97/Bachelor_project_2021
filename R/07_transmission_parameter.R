@@ -94,4 +94,6 @@ I_pr_cow_pr_day[,-1]
 
 
 
+mean(c(-4.5,2))
+
 

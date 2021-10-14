@@ -10,7 +10,7 @@ source(file ="R/99_functions.R")
 
 
 # Load data ---------------------------------------------------------------
-fluke_data <- read_tsv(file = "data/01_fluke_data_clean.tsv")
+fluke_data <- Iread_tsv(file = "data/01_fluke_data_clean.tsv")
 
 
 # Convert to factors ------------------------------------------------------
