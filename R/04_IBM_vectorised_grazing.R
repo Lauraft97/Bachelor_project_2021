@@ -12,8 +12,9 @@ library(statmod)
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")
 source(file = "R/04x_cow_dynamics.R")
-source(file = "R/11_sunrise_sunset_data.R")
-source(file = "R/10_ODE_rates.R")
+#source(file = "R/11_sunrise_sunset_data.R")
+#source(file = "R/10_ODE_rates.R")
+source(file = "R/10_ODE_newtemp.R")
 
 
 # Model IBM ------------
@@ -31,7 +32,7 @@ year <- 365
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 2*365
+time <- 4*365
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 3.75*year
