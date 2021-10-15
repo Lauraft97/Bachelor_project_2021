@@ -72,17 +72,31 @@ daily_weather <- full_join(daily_weather,warm_days,by="Date")
 # 
 # pexp(q = 0,rate = 0.5)
 
+
+# Defining the maximum rates 
+lambda_ES_max <- 0.0000005 #Transmission rate egg to snail
+mu_Egg_max <- 0.65 # Death rate eggs (become non-infectious)
+delta_snail_max <- 1.5 #Daily snail population "scaling factor"
+gamma_S_max <- 2 #Excretion of metacercarria from snail
+mu_S_max <- 0.05 #Death rate of infected snails / recvoery rate
+mu_M_max <- 0.15 # Death rate of metacercaria
+  
+  
+  
+  
+  
 Rates <- function(date){
   #Filtering data for given day  
   DD <- daily_weather %>% filter(Date == date) %>% 
     select(mean_ground_temp_ten) %>% 
     pull()
   
-  lambda_ES <- pexp(q = DD,rate = 0.25)*0.0000005 
-  mu_egg <- (1-pexp(q = DD,rate = 0.25))*0.65
-  delta_snail <- pexp(q = DD,rate = 0.25)*1.5
+  lambda_ES <- pexp(q = DD,rate = 0.25)*lambda_ES_max
+  mu_Egg <- (1-pexp(q = DD,rate = 0.25))*mu_Egg_max
+  delta_snail <- pexp(q = DD,rate = 0.25)*delta_snail_max
+  mu_M <- (1-pexp(q = DD,rate = 0.25))*mu_M_max
   
-  Rates <- c(lambda_ES,mu_egg,delta_snail)
+  Rates <- c(lambda_ES,mu_Egg,delta_snail,mu_M)
   return(Rates) 
   
 }

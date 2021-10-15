@@ -2,7 +2,8 @@
 
 rm(list = ls())
 
-set.seed(1234)
+#set.seed(1234)
+set.seed(756)
 
 library(tidyverse)
 library(lubridate)
@@ -32,7 +33,7 @@ year <- 365
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 4*365
+time <- 5*365
 Mcer <- 10^4
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 3.75*year
@@ -45,11 +46,12 @@ source(file = "R/98_placeholders.R")
 # ODE Parameters --------------------------------------------------------------
 mu_Egg <- Rates(date)[2]
 lambda_ES <- Rates(date)[1]
+mu_M <- Rates(date)[4]
 Snail_pop0 <- 10^4
 alpha <- 2/(6*7)
 gamma_S <- 2
 mu_S <- 0.05
-mu_M <- 0.05
+
 
 Eggs[1] <- 0
 E1_S[1] <- 0
@@ -231,6 +233,7 @@ for(k in 2:time){
   mu_Egg <- Rates(date)[2]
   lambda_ES <- Rates(date)[1]
   delta_snail <- Rates(date)[3]
+  mu_M <- Rates(date)[4]
   
   #Snail_pop[k] <- season_snail_pop(0.9,2*pi/year,-25,1,k)*Snail_pop0
   Snail_pop[k] <- delta_snail*Snail_pop0
