@@ -15,7 +15,7 @@ weather <- weather %>% select(location, date_time, temp, temp_max, temp_min, rai
 
 
 # To work with one of the locations are removed
-weather <- weather %>% filter(location == "Toender") %>% filter(Date >= as.Date("2015-01-01"))
+weather <- weather %>% filter(Date >= as.Date("2015-01-01"))
 
 # Adding variable to describe ground level temp using sine function
 
@@ -43,12 +43,12 @@ weather <- weather %>% mutate(ground_temp_upda = ground_temp - 10,
                                                            TRUE ~ ground_temp_upda))
 
 
-warm_days <- weather %>% group_by(Date) %>% 
+warm_days <- weather %>% group_by(location,Date) %>% 
   filter(ground_temp_upda > 0) %>% 
   summarise(n = n())
 
 daily_weather <- weather  %>% 
-  group_by(Date) %>% 
+  group_by(location,Date) %>% 
   summarise(rain = sum(rain_1h, na.rm = T),
             snow = sum(snow_1h, na.rm = T),
             mean_ground_temp = mean(ground_temp),
@@ -57,7 +57,11 @@ daily_weather <- weather  %>%
   arrange(Date) %>% 
   ungroup()
 
-daily_weather <- full_join(daily_weather,warm_days,by="Date")
+daily_weather <- full_join(daily_weather,warm_days,by=c("location","Date")) 
+
+daily_weather <- daily_weather %>% arrange(location,Date)
+
+save(daily_weather,file = "data/10_model_weather.RData")
 
 # daily_weather %>% filter(Date <= as.Date("2016-01-01")) %>% 
 #   ggplot(mapping = aes(x = Date, 
@@ -72,32 +76,4 @@ daily_weather <- full_join(daily_weather,warm_days,by="Date")
 # 
 # pexp(q = 0,rate = 0.5)
 
-
-# Defining the maximum rates 
-lambda_ES_max <- 0.0000005 #Transmission rate egg to snail
-mu_Egg_max <- 0.65 # Death rate eggs (become non-infectious)
-delta_snail_max <- 1.5 #Daily snail population "scaling factor"
-gamma_S_max <- 2 #Excretion of metacercarria from snail
-mu_S_max <- 0.05 #Death rate of infected snails / recvoery rate
-mu_M_max <- 0.15 # Death rate of metacercaria
-  
-  
-  
-  
-  
-Rates <- function(date){
-  #Filtering data for given day  
-  DD <- daily_weather %>% filter(Date == date) %>% 
-    select(mean_ground_temp_ten) %>% 
-    pull()
-  
-  lambda_ES <- pexp(q = DD,rate = 0.25)*lambda_ES_max
-  mu_Egg <- (1-pexp(q = DD,rate = 0.25))*mu_Egg_max
-  delta_snail <- pexp(q = DD,rate = 0.25)*delta_snail_max
-  mu_M <- (1-pexp(q = DD,rate = 0.25))*mu_M_max
-  
-  Rates <- c(lambda_ES,mu_Egg,delta_snail,mu_M)
-  return(Rates) 
-  
-}
 

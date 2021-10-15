@@ -90,10 +90,9 @@ I_pr_cow[,-1]
 
 I_pr_cow_pr_day <- I_pr_cow / n_days
 
-I_pr_cow_pr_day[,-1]
+I_pr_cow_pr_day[,-1]*300
 
 
 
-mean(c(-4.5,2))
 
 

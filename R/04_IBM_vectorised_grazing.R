@@ -2,8 +2,8 @@
 
 rm(list = ls())
 
-#set.seed(1234)
-set.seed(756)
+set.seed(1234)
+#set.seed(756)
 
 library(tidyverse)
 library(lubridate)
@@ -15,7 +15,8 @@ source(file ="R/99_functions.R")
 source(file = "R/04x_cow_dynamics.R")
 #source(file = "R/11_sunrise_sunset_data.R")
 #source(file = "R/10_ODE_rates.R")
-source(file = "R/10_ODE_newtemp.R")
+source(file = "R/10_ODE_temp_mean.R")
+load("data/10_model_weather.RData")
 
 
 # Model IBM ------------
@@ -33,12 +34,12 @@ year <- 365
 # Parameters --------------------------------------------------------------
 nCows <- 300
 nE0 <- 3
-time <- 5*365
-Mcer <- 10^4
+time <- 4*365
 First_sample <- as.Date("2015-04-27")
 First_DOB <- First_sample - 3.75*year
 date <- First_sample
 ID_no <- nCows
+M_scaling <- 10^7.5
 
 #Placeholder to fill out
 source(file = "R/98_placeholders.R")
@@ -53,13 +54,19 @@ gamma_S <- 2
 mu_S <- 0.05
 
 
-Eggs[1] <- 0
-E1_S[1] <- 0
+Eggs[1] <- 10000
+E1_S[1] <- 100
 E2_S[1] <- 0
 I_S[1] <- 0
 R_S[1] <- 0
-M[1] <- 1000
-Snail_pop[1] <- season_snail_pop(0.9,2*pi/year,-25,1,1)*Snail_pop0
+M[1] <- 100
+Snail_pop[1] <- 0.5*Snail_pop0
+
+#Vectors for exploration of model
+DD_Temp <- c(rep(0,time))
+DD_Temp[1] <- daily_weather %>% filter(Date == First_sample,location == "Toender") %>% 
+  select(mean_ground_temp_ten) %>% 
+  pull()
 
 # Creating data frame of susceptible cows (average farm size in data 300)
 Farm <- tibble(CowID = 1:nCows,
@@ -177,7 +184,7 @@ for(k in 2:time){
   
   
   Farm <- Farm %>%  
-    mutate(E_prop = Grazing*0.01,
+    mutate(E_prop = 1-exp(-Grazing*(M[k-1]/M_scaling)),
            Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)),
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
@@ -253,6 +260,11 @@ for(k in 2:time){
   Pop[k] <- Farm %>% nrow()
   print(time-k)  
   
+  #Temperature for each day
+  DD_Temp[k] <- daily_weather %>% filter(Date == date,location == "Toender") %>% 
+    select(mean_ground_temp_ten) %>% 
+    pull()
+  
 }
 
 endtime <- Sys.time()                              
@@ -318,5 +330,8 @@ ggplot(mapping = aes(x = 1:time,
                      y = E1_S)) +
   geom_line()
 
+ggplot(mapping = aes(x = 1:time,
+                     y = DD_Temp)) +
+  geom_line()
 
 
