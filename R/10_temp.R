@@ -6,16 +6,15 @@ library(tidyverse)
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")
 
+# Only work with weather from 1. jan 2015 and forward
+weather <- weather %>% filter(date_time >= as.Date("2015-01-01"))
+
 # Column with dates and hours seperated
-weather <- weather %>% select(location, date_time, temp, temp_max, temp_min, rain_1h, snow_1h) %>% 
+weather <- weather %>% select(location, date_time, temp, rain_1h, snow_1h) %>% 
   mutate(Date = format(date_time, format = "%d-%m-%Y"),
          Date = as.Date(Date, format = "%d-%m-%Y"),
          Time = format(date_time, format = "%H"),
          Time = as.numeric(Time)) 
-
-
-# Only work with weather from 1. jan 2015 and forward
-weather <- weather %>% filter(Date >= as.Date("2015-01-01"))
 
 # Writing sine function to acount for ground vs air temperature
 sine_ground_vs_air <- function(a_sub,a_add,x){
@@ -33,6 +32,23 @@ sine_ground_vs_air <- function(a_sub,a_add,x){
   }
 }
 
+# x <- c(0:23)
+# y <- rep(0,24)
+# 
+# for (i in x){
+#   y[i+1] <- sine_ground_vs_air(3.5,2,i)
+# }
+# 
+# 
+# ggplot(mapping = aes(x = x,
+#                      y = y)) +
+#   geom_point() +
+#   geom_hline(yintercept = 0, linetype="dashed") + 
+#   labs(title = "sine_ground_vs_air",
+#        x = "Hours",
+#        y = "Degrees to add for ground temperature")
+
+
 #Adding ground temperature variable by using the sine function 
 weather <- weather %>% rowwise() %>% mutate(ground_temp = round(temp+sine_ground_vs_air(3.5,2,Time),2))
 
@@ -41,7 +57,8 @@ weather <- weather %>% rowwise() %>% mutate(ground_temp = round(temp+sine_ground
 #Setting values above 25 degrees and below 10 to 0
 # In this case above 25 and below 0
 weather <- weather %>% mutate(ground_temp_ten = ground_temp - 10,
-                              ground_temp_ten = case_when(ground_temp_ten < 0 | ground_temp_ten > 15 ~ 0,
+                              ground_temp_ten = case_when(ground_temp_ten < 0 | 
+                                                            ground_temp_ten > 15 ~ 0,
                                                            TRUE ~ ground_temp_ten))
 
 
@@ -74,4 +91,9 @@ daily_weather <- daily_weather %>% arrange(location,Date)
 #Saving the daily weather file for later use in ODE
 save(daily_weather,file = "data/10_model_weather.RData")
 
+
+# daily_weather %>% filter(Date <= as.Date("2016-01-01")) %>%
+#   ggplot(mapping = aes(x = Date,
+#                        y = mean_ground_temp_ten)) +
+#   geom_line()
 
