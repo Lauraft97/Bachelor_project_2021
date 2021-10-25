@@ -222,11 +222,11 @@ for(k in 2:time){
     t()
   
   Farm <- Farm %>% mutate(eggs_pr_gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                    ~ log_growth(round(rinvgauss(1,mean = 1.52, shape = 0.35),2),75,0.2,sick_period),
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.3),2)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
                                                     sick_period > 3*30 & sick_period <= 8*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.35),2),
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.3),2),
                                                     sick_period > 8*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.35),2)*exp(-(0.05*(sick_period-(8*30)))),
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.3),2)*exp(-(0.05*(sick_period-(8*30)))),
                                                     TRUE ~ 0))
   
   Egg_new[k] <- Farm %>% filter(eggs_pr_gram > 0) %>% 
