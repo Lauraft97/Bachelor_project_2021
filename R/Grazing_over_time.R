@@ -49,6 +49,8 @@ Graz_calf <- c(rep(0,time))
 Graz_heifer <- c(rep(0,time))
 Graz_group3 <- c(rep(0,time))
 
+prob_time <- c(rep(0,time))
+
 # ODE Parameters --------------------------------------------------------------
 mu_Egg <- Rates(date)[2]
 lambda_ES <- Rates(date)[1]
@@ -133,6 +135,9 @@ Graz_heifer[1] <- Farm %>% filter(Group == 2) %>%
 
 Graz_group3[1] <- Farm %>% filter(Group == 3) %>% 
   select(Grazing)
+
+prob_time[1] <- Farm %>% 
+  select(E_prop)
 
 Pop[1] <- nCows
 
@@ -293,6 +298,8 @@ for(k in 2:time){
   Graz_group3[k] <- Farm %>% filter(Group == 3) %>% 
     select(Grazing)
   
+  prob_time[k] <- Farm  %>% 
+    select(E_prop)
   
   }
 
@@ -322,6 +329,9 @@ Graz_group3s <- tibble("day" = 1:time,
 Graz_group3s <- Graz_group3s  %>% unnest_longer("index")
 
 
+prob_time_E <- tibble("day" = 1:time, 
+                       "E_prob" = prob_time) 
+prob_time_E <- prob_time_E  %>% unnest_longer("E_prob")
 
 # Plots -------------------------------------------------------------------
 #Calfs Grazing index over time
@@ -332,8 +342,9 @@ ggplot(data = Graz_calfs, aes(x = day,
   stat_summary(
     geom = "line",
     fun = "mean",
-    col = "blue") +
+    col = "black") +
   labs(title = "Grazing index and mean over time for calf")
+
 #Heifers Grazing index over time
 Graz_heifers %>% ggplot(aes(x = day,
                            y = index,
@@ -355,6 +366,18 @@ Graz_group3s %>% ggplot(aes(x = day,
     fun = "mean",
     col = "black")+
   labs(title = "Grazing index and mean over time for Group3")
+
+
+#Transmission rate over time
+prob_time_E %>% ggplot(aes(x = day,
+                           y = E_prob,
+                           col= "Transmission")) +
+  geom_point()+ 
+  stat_summary(
+    geom = "line",
+    fun = "mean",
+    col = "black") 
+
 
 
 #Base R Plots

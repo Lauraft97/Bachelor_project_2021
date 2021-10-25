@@ -1,6 +1,6 @@
 # 04 IBM for life cycle stages in cows
 
-rm(list = ls())
+#rm(list = ls())
 
 #set.seed(1234)
 #set.seed(756)
@@ -43,13 +43,17 @@ month5 <- 152
 month10 <- 304
 year <- 365
 
-
 # Parameters --------------------------------------------------------------
-time <- 2*365
+time <- 2*year
 First_DOB <- First_sample - 3.75*year
 date <- First_sample
 ID_no <- nCows
 M_scaling <- 10^7.5
+
+
+sim <- list()
+
+for (p in c(1:2)){
 
 #Placeholder to fill out
 source(file = "R/98_placeholders.R")
@@ -247,24 +251,24 @@ for(k in 2:time){
   
   if(k %in% Visit_days){
     
-  Cohort_info <- Farm %>% filter(CowID %in% Cohort_cows) %>% select(CowID, DOB, I_period) %>% 
-                 mutate(Visit_day_no = k)
-  validation <- bind_rows(validation, Cohort_info)
-  
+    Cohort_info <- Farm %>% filter(CowID %in% Cohort_cows) %>% select(CowID, DOB, I_period) %>% 
+      mutate(Visit_day_no = k)
+    validation <- bind_rows(validation, Cohort_info)
+    
   }
   
   Farm <- Farm %>% mutate(eggs_pr_gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
-                                                    sick_period > 3*30 & sick_period <= 8*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2),
-                                                    sick_period > 8*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2)*exp(-(0.05*(sick_period-(8*30)))),
-                                                    TRUE ~ 0))
+                                                   ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
+                                                   sick_period > 3*30 & sick_period <= 8*30 
+                                                   ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2),
+                                                   sick_period > 8*30 
+                                                   ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2)*exp(-(0.05*(sick_period-(8*30)))),
+                                                   TRUE ~ 0))
   
   Egg_new[k] <- Farm %>% filter(eggs_pr_gram > 0) %>% 
-                mutate(egg_excreted = eggs_pr_gram * (15000/5)) %>%
-                ungroup() %>% 
-                summarise(sum(egg_excreted)) %>% pull()
+    mutate(egg_excreted = eggs_pr_gram * (15000/5)) %>%
+    ungroup() %>% 
+    summarise(sum(egg_excreted)) %>% pull()
   
   # Add in mutate cow type and therefore how much faeces.   
   
@@ -305,14 +309,21 @@ for(k in 2:time){
 }
 
 
-validation <- validation %>% slice(-1)
+sim[[p]] <- validation %>% slice(-1) %>% filter(I_period > 0) %>% group_by(Visit_day_no) %>% summarise(n = n())
 
 endtime <- Sys.time()                              
 
 endtime - starttime                                                                         
 
 
-Results <- list(S_Cow,E_Cow,I_Cow,Egg_new)
+#Results <- list(S_Cow,E_Cow,I_Cow,Egg_new)
+
+
+}
+
+save(sim,file = "data/Simulations_SSL/Cohort_sim.RData")
+
+# Plots -------------------------------------------------------------------
 
 
 
