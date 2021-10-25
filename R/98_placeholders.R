@@ -20,6 +20,13 @@ I_Cow <- tibble(I1 = rep(0,time),
                 I2 = rep(0,time),
                 I3 = rep(0,time))
 
+validation <- tibble(CowID = 0, 
+                     DOB = NA,
+                     I_period = 0,
+                     Visit_day_no = 0)
+
+
+
 Egg_new <- c(rep(0,time))
 Births <- c(rep(0,time))
 Pop <- c(rep(0,time))

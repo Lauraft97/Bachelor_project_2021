@@ -2,8 +2,10 @@
 
 rm(list = ls())
 
-set.seed(1234)
+#set.seed(1234)
 #set.seed(756)
+set.seed(744)
+
 
 library(tidyverse)
 library(lubridate)
@@ -16,6 +18,7 @@ source(file = "R/04x_cow_dynamics.R")
 #source(file = "R/11_sunrise_sunset_data.R")
 #source(file = "R/10_ODE_rates.R")
 source(file = "R/10_ODE_temp_mean.R")
+source(file = "R/14_Farm_info.R")
 load("data/10_model_weather.RData")
 
 
@@ -23,6 +26,16 @@ load("data/10_model_weather.RData")
 # - Each cow is a part of one of the four group
 # - Each cow has a grazing intensity which is an expression of the likelihood of grazing.
 # - Calf are not on grass for the first 4-6 month of their life
+
+# Initiation
+Farm_info <- Farm_var("C1")
+
+First_sample <- Farm_info[[1]]
+City <- Farm_info[[2]]
+nCohort <- Farm_info[[3]]
+nCows <- Farm_info[[4]]
+nE0 <- floor(8*nCows/nCohort) # Should maybe be updated
+
 
 # Time values
 
@@ -32,10 +45,7 @@ year <- 365
 
 
 # Parameters --------------------------------------------------------------
-nCows <- 300
-nE0 <- 3
-time <- 4*365
-First_sample <- as.Date("2015-04-27")
+time <- 2*365
 First_DOB <- First_sample - 3.75*year
 date <- First_sample
 ID_no <- nCows
@@ -64,9 +74,16 @@ Snail_pop[1] <- 0.5*Snail_pop0
 
 #Vectors for exploration of model
 DD_Temp <- c(rep(0,time))
-DD_Temp[1] <- daily_weather %>% filter(Date == First_sample,location == "Toender") %>% 
+DD_Temp[1] <- daily_weather %>% filter(Date == First_sample,location == City) %>% 
   select(mean_ground_temp_ten) %>% 
   pull()
+
+
+#Rain
+DD_Rain <- c(rep(0,time))
+last10Days <- First_sample - 0:9
+DD_Rain[1] <- daily_weather %>% filter(Date %in% last10Days,location == City) %>% 
+  summarise(rain = sum(rain)) %>% pull()
 
 # Creating data frame of susceptible cows (average farm size in data 300)
 Farm <- tibble(CowID = 1:nCows,
@@ -99,6 +116,9 @@ E0_cows <- sample(1:nCows,
 # Randomly exposed nE0 number of cows (change state to 2) and generating period to be in E
 Farm <- cow_pop_init(Farm)
 
+# Random choose cohort
+Cohort_cows <- cohort(Farm,c(1/4,1/4,2/4),nCohort)
+
 # Examination of the normal distribution used
 #pnorm(0,49,7) # The likelihood of getting a negative value of very small. 
 
@@ -121,6 +141,9 @@ I_Cow[1,] <- Farm %>% group_by(Group, .drop = FALSE) %>%
   t()
 
 Pop[1] <- nCows
+
+Visit_days <- Farm_info[[5]]
+
 starttime <- Sys.time()
 
 for(k in 2:time){
@@ -189,7 +212,7 @@ for(k in 2:time){
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
                              TRUE ~ State),
-           E_period = case_when(State == 2 & E_period == 0 ~ conv_neg(round(rnorm(1,mean = 7*7,sd = 7))),
+           E_period = case_when(State == 2 & E_period == 0 ~ conv_neg(round(rnorm(1,mean = 5*7,sd = 7))),
                                 State == 2 & E_period > 0 ~ E_period - 1,
                                 E_period < 0 ~ 0,
                                 TRUE ~ 0),
@@ -221,16 +244,25 @@ for(k in 2:time){
     pull() %>% 
     t()
   
+  
+  if(k %in% Visit_days){
+    
+  Cohort_info <- Farm %>% filter(CowID %in% Cohort_cows) %>% select(CowID, DOB, I_period) %>% 
+                 mutate(Visit_day_no = k)
+  validation <- bind_rows(validation, Cohort_info)
+  
+  }
+  
   Farm <- Farm %>% mutate(eggs_pr_gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.3),2)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
                                                     sick_period > 3*30 & sick_period <= 8*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.3),2),
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2),
                                                     sick_period > 8*30 
-                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.3),2)*exp(-(0.05*(sick_period-(8*30)))),
+                                                    ~ round(rinvgauss(1,mean = 1.52, shape = 0.5),2)*exp(-(0.05*(sick_period-(8*30)))),
                                                     TRUE ~ 0))
   
   Egg_new[k] <- Farm %>% filter(eggs_pr_gram > 0) %>% 
-                mutate(egg_excreted = eggs_pr_gram * 3000) %>%
+                mutate(egg_excreted = eggs_pr_gram * (15000/5)) %>%
                 ungroup() %>% 
                 summarise(sum(egg_excreted)) %>% pull()
   
@@ -261,11 +293,19 @@ for(k in 2:time){
   print(time-k)  
   
   #Temperature for each day
-  DD_Temp[k] <- daily_weather %>% filter(Date == date,location == "Toender") %>% 
+  DD_Temp[k] <- daily_weather %>% filter(Date == date,location == City) %>% 
     select(mean_ground_temp_ten) %>% 
     pull()
   
+  # Rain
+  last10Days <- date - 0:9
+  DD_Rain[k] <- daily_weather %>% filter(Date %in% last10Days,location == City) %>% 
+    summarise(rain = sum(rain)) %>% pull()
+  
 }
+
+
+validation <- validation %>% slice(-1)
 
 endtime <- Sys.time()                              
 
@@ -307,7 +347,6 @@ ggplot(mapping = aes(x = 1:time,
   geom_line()
 
 
-
 ggplot(mapping = aes(x = 1:time,
                      y = Snail_pop)) +
   geom_line()
@@ -331,7 +370,26 @@ ggplot(mapping = aes(x = 1:time,
   geom_line()
 
 ggplot(mapping = aes(x = 1:time,
+                     y = E2_S)) +
+  geom_line()
+
+ggplot(mapping = aes(x = 1:time,
+                     y = I_S)) +
+  geom_line()
+
+ggplot(mapping = aes(x = 1:time,
                      y = DD_Temp)) +
   geom_line()
+
+ggplot(mapping = aes(x = 1:time,
+                     y = DD_Rain)) +
+  geom_line()
+
+
+
+
+
+
+
 
 

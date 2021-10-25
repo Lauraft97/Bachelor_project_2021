@@ -47,8 +47,8 @@ cow_dynamics <- function(tibble){
                                         TRUE ~ cycle_day),
                   Lactation = case_when(cycle_day >= 1 & cycle_day <= month10 ~ 1,
                                         cycle_day > month10 ~ 0),
-                  Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.5),#Milking cows 
-                                      #Calfs under 5 months do note graze
+                  Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.6),#Milking cows 
+                                      #Calfs under 5 months do not grass
                                       Age <= month5 ~ runif(1,0,0.1), 
                                       #Calfs 5-9 month graze with heifers (2 years of age) 
                                       (Group == 1 & Age > month5) | Group == 2 ~ runif(1,0.5,1), 

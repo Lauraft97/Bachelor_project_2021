@@ -19,12 +19,6 @@ conv_neg <- function(x){
   return(x)
 }
 
-# Logistic growth
-log_growth <- function(max,halfway,rate,k){
-  f <- max/(1+exp(-rate*(k-halfway)))
-  return(f)
-}
-
 #Seasonal function for snail population
 #a=amplitude, b=wave number, c=right shift, d=vertical shift
 
@@ -32,4 +26,44 @@ sine <- function(a,b,c,d,x){
   f <- a*sin(b*(x-c))+d
   return(f)
 }
+
+# Sampling from the different groups to cohort
+cohort <- function(data,distr,nCohort){
+
+  
+  nGroup <- round(distr*nCohort,0)
+  
+  CohortID <- c()
+  
+  for(i in 1:length(nGroup)){
+     
+    CowIDs <- data %>% filter(Group == i) %>% select(CowID) %>% pull() 
+
+    
+    CID <- sample(CowIDs,
+                 nGroup[i],
+                 replace = F)
+    
+    CohortID <- c(CohortID,CID)
+  }
+  
+  return(CohortID)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

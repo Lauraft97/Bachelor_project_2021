@@ -44,21 +44,25 @@ EPG_data %>% filter(EPG > 0) %>% ggplot(aes(EPG)) + stat_ecdf(geom = "point")
 
 # Inverse gaussian distribution
 
-values <- matrix(data = NA, nrow = 273, ncol = 4)
-lambda <- seq(0.1,0.7,0.2)
+values <- matrix(data = NA, nrow = 10000, ncol = 4)
+lambda <- seq(0.1,1.3,0.4)
+Gauss <- matrix(data = NA, nrow = 100, ncol = 273)
+
 
 for(i in c(1:4)){
-  values[,i] <- round(rinvgauss(273,mean = 1.52, shape = lambda[i]),2)
+  
+  values[,i] <- round(rinvgauss(10000,mean = 1.52, shape = lambda[i]),2)
+  #values[,i] <- colMeans(Gauss)
 }
 
+b <- EPG_data %>% filter(EPG > 0) %>% select(EPG) %>% pull()
 
-
-EPG_data %>% filter(EPG > 0) %>% ggplot() + 
-  stat_ecdf(aes(EPG), geom = "point") +
-  stat_ecdf(aes(values[,1]), color = "red", geom = "point") +
-  stat_ecdf(aes(values[,2]), color = "green", geom = "point") +
-  stat_ecdf(aes(values[,3]), color = "blue", geom = "point") +
-  stat_ecdf(aes(values[,4]), color = "purple", geom = "point")
+  ggplot() +
+  stat_ecdf(aes(values[,1]), color = "red", geom = "line") +
+  stat_ecdf(aes(values[,2]), color = "green", geom = "line") +
+  stat_ecdf(aes(values[,3]), color = "blue", geom = "line") +
+  stat_ecdf(aes(values[,4]), color = "purple", geom = "line") + 
+  stat_ecdf(aes(b)) + xlim(0,7.5)
 
 
 
@@ -75,6 +79,15 @@ tibble(x = rinvgauss(273,mean = 1.52, shape = 1)) %>% ggplot(mapping = aes(x = x
 # Combining data
 data <- bind_cols(a,as.tibble(values))
 
+
+ggplot() + geom_density(aes(values[,2])) + geom_density(aes(values[,1]), col = "blue") + 
+  geom_density(aes(values[,3]), col = "green") +
+  geom_density(aes(values[,4]), col = "purple") +
+  geom_density(aes(data$EPG), col = "red") +
+  xlim(0,2)
+
+ggplot() + geom_density(aes(values[,2])) + geom_density(aes(data$EPG), col = "red")
+
 # Comparing distribution and distribution of egg in data
 data %>%  
   ggplot() + geom_density(mapping = aes(x = EPG)) +
@@ -85,6 +98,7 @@ data %>%
   geom_density(mapping = aes(x = V3,
                            col = "0.5")) +
   geom_density(mapping = aes(x = V4,
-                           col = "0.7"))
+                           col = "0.7")) +
+  xlim(0,2)
 
 

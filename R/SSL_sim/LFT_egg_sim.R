@@ -368,7 +368,7 @@ number_summary %>% ggplot(aes(x = sick_period)) +
        subtitle = "Eggs pr gram against sick_period") +
   xlab("Days after infection") +
   ylab("Eggs pr gram") +
-  xlim(60,300) 
+  xlim(60,450) 
 
 # Boxplot
 Eggs_over_time %>% ggplot(aes(x = eggs_pr_gram)) + geom_boxplot() +
