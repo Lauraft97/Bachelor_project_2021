@@ -23,19 +23,36 @@ fluke_data <- fluke_data %>% mutate(Group = factor(x = Group,
                                                               "Multiparous")))
 
 # Filtering on all cows that have a positive faecal egg count
-FEC_pos_cows <- fluke_data %>% filter(dEPG =TRUE) %>% distinct(UniqueID) %>% pull()
+EPG_pos_cows <- fluke_data %>% filter(dEPG == TRUE) %>% 
+                distinct(UniqueID) %>% pull()
+
+zero_EPG_cows <- fluke_data %>% filter((EPG == 0 | dSerum == T | dCopro == T) & 
+                                       !(UniqueID %in% EPG_pos_cows)) %>% 
+  distinct(UniqueID) %>% pull()
+
+
   
-EPG_data <- fluke_data %>% filter(UniqueID %in% FEC_pos_cows) %>% 
-            select(Farm,UniqueID,Visit,EPG,dEPG) %>% 
+EPG_data <- fluke_data %>% filter(UniqueID %in% EPG_pos_cows) %>% 
+            select(Farm,UniqueID,Visit,EPG,dEPG, dSerum, dCopro) %>% 
             arrange(UniqueID,Visit) %>% 
             drop_na()
 
+EPG_data_pos <- EPG_data
 
-EPG_data %>% ggplot(mapping = aes(x = Visit,
-                                  y = EPG)) +
-             geom_point(mapping = aes(col = UniqueID)) +
+
+a %>% ggplot(mapping = aes(x = Visit,
+                           y = Serum)) +
+             geom_point(aes(color = dSerum)) +
              facet_wrap(~Farm, scales = "free") +
              theme(legend.position = "none")
+
+as.integer(EPG_data_pos$EPG)
+
+
+require(pscl)
+
+m1 <- zeroinfl(EPG ~ , data = EPG_data_pos)
+
 
 
 #ECDF plot of the faecal egg count
@@ -44,9 +61,8 @@ EPG_data %>% filter(EPG > 0) %>% ggplot(aes(EPG)) + stat_ecdf(geom = "point")
 
 # Inverse gaussian distribution
 
-values <- matrix(data = NA, nrow = 10000, ncol = 4)
+values_1 <- matrix(data = NA, nrow = 10000, ncol = 4)
 lambda <- seq(0.1,1.3,0.4)
-Gauss <- matrix(data = NA, nrow = 100, ncol = 273)
 
 
 for(i in c(1:4)){
@@ -55,14 +71,67 @@ for(i in c(1:4)){
   #values[,i] <- colMeans(Gauss)
 }
 
+
+library(fitdistrplus)
+
+x <- EPG_data %>% filter(EPG > 0, EPG < 20) %>% select(EPG)  
+
+
+
+
+fit.gamma <- fitdist(x, distr = "gamma", method = "mle")
+fit.IG <- fitdist(x, distr = "invgauss", start = list(mean = 1.52, shape = 0.5))
+fit.W <-fitdist(x,"weibull")
+
+
+summary(fit.gamma)
+summary(fit.IG)
+summary(fit.W)
+
+
+
+values = rgamma(1000, shape = 0.7480860, rate = 0.4985634)
+IG = rinvgauss(1000, 1.500597, 0.643915)
+W <- rweibull(1000, shape = 0.7679338, scale = 1.1609)
+
+W_3 <- rweibull3(1000, shape = 0.77, scale = 0.77, thres = 0.18)
+
+ggplot() + geom_density(aes(values)) +
+  geom_density(aes(x), col = "red") +
+  geom_density(aes(IG), col = "green") +
+  geom_density(aes(W_3), col = "blue") + xlim(0,10)
+
+
+ggplot() + stat_ecdf(aes(values, color = "gamma"), geom = "line") +
+  stat_ecdf(aes(b, color = "data")) +
+  stat_ecdf(aes(IG, color = "Gauss")) +
+  stat_ecdf(aes(W_3, color = "Weibull")) +
+  xlim(0,10)
+
+
+
 b <- EPG_data %>% filter(EPG > 0) %>% select(EPG) %>% pull()
 
+colors <- c("0.1"= "red", "0.5" = "blue", "0.9" = "purple", "1.3" = "green", "data" = "black")
+
   ggplot() +
-  stat_ecdf(aes(values[,1]), color = "red", geom = "line") +
-  stat_ecdf(aes(values[,2]), color = "green", geom = "line") +
-  stat_ecdf(aes(values[,3]), color = "blue", geom = "line") +
-  stat_ecdf(aes(values[,4]), color = "purple", geom = "line") + 
-  stat_ecdf(aes(b)) + xlim(0,7.5)
+  stat_ecdf(aes(values[,1],
+                color = "0.1"), geom = "line") +
+  stat_ecdf(aes(values[,2],
+                color = "0.5"), geom = "line") +
+  stat_ecdf(aes(values[,3],
+                color = "0.9"), geom = "line") +
+  stat_ecdf(aes(values[,4], 
+                color = "1.3"), geom = "line") + 
+  stat_ecdf(aes(b,
+                color = "data")) +  
+    labs(x = "Eggs pr 5 gram",
+         y = "Density",
+         title = "ECDF for inverse Gaussian distribution",
+         subtitle = "Different shape parameters",
+         color = "Lambda") +   
+  scale_color_manual(values = colors) +
+  xlim(0,7.5)
 
 
 
@@ -83,7 +152,7 @@ data <- bind_cols(a,as.tibble(values))
 ggplot() + geom_density(aes(values[,2])) + geom_density(aes(values[,1]), col = "blue") + 
   geom_density(aes(values[,3]), col = "green") +
   geom_density(aes(values[,4]), col = "purple") +
-  geom_density(aes(data$EPG), col = "red") +
+  geom_density(aes(a$EPG), col = "red") +
   xlim(0,2)
 
 ggplot() + geom_density(aes(values[,2])) + geom_density(aes(data$EPG), col = "red")
