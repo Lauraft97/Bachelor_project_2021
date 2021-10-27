@@ -348,13 +348,13 @@ po <- po %>%
          upper.prop = mean + qt(1 - (0.05 / 2), n - 1) * se,
          simulation = g)
 
-E_prop_over_time <- bind_rows(E_prop_over_time,po)
+E_prop_over_time <- bind_rows(E_prop_over_time,po) %>% mutate(Day = as.numeric(Day))
 }
 
+E_prop_sim1 <- E_prop_over_time %>% filter(simulation ==1) %>% mutate(Day = as.numeric(Day)) 
 #Plot transmission over time 10 simulations
-period <- c(rep(365:547))
 
-E_prop_over_time %>% filter(Day %in% period) %>% ggplot(aes(x = Day,
+E_prop_sim1  %>% ggplot(aes(x = Day,
                                 group = 1)) + 
   geom_line(aes(y = mean)) +
   geom_line(aes(y = lower.prop,
@@ -362,19 +362,21 @@ E_prop_over_time %>% filter(Day %in% period) %>% ggplot(aes(x = Day,
                 linetype = 2) +
   geom_line(aes(y = upper.prop,
                 color = "upper Transmission propability"),
-                linetype = 2) +
-  facet_wrap(~ simulation)
+                linetype = 2) 
+  #+ facet_wrap(~ simulation)
 
-#Plot transmission over time simulation 1
-E_prop_over_time %>% filter(simulation == 1) %>% ggplot(aes(x = Day,
-                                                            group = 1)) + 
-  geom_line(aes(y = mean)) +
-  geom_line(aes(y = lower.prop,
-                color = "lower Transmission propability"),
-            linetype = 2) +
-  geom_line(aes(y = upper.prop,
-                color = "upper Transmission propability"),
-            linetype = 2) 
+
+E_prop_over_time  %>% ggplot(aes(x = Day,
+                                 group = 1)) + 
+  geom_line(aes(y = mean,
+                col = simulation)) 
+  #geom_line(aes(y = lower.prop,
+  #              color = "lower Transmission propability"),
+  #          linetype = 2) +
+  #geom_line(aes(y = upper.prop,
+  #              color = "upper Transmission propability"),
+  #          linetype = 2) + 
+  #facet_wrap(~ simulation)
 
 
 S_Cow %>% ggplot(mapping = aes(x = 1:time)) +
