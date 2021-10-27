@@ -73,40 +73,41 @@ for(i in c(1:4)){
 
 
 library(fitdistrplus)
+library(FAdist)
+library(weibullness)
 
-x <- EPG_data %>% filter(EPG > 0, EPG < 20) %>% select(EPG)  
-
-
-
+#x_all <- EPG_data %>% filter(EPG > 0) %>% dplyr::select(EPG) %>% pull()
+x <- EPG_data %>% filter(EPG > 0) %>% dplyr::select(EPG) %>% pull()
 
 fit.gamma <- fitdist(x, distr = "gamma", method = "mle")
 fit.IG <- fitdist(x, distr = "invgauss", start = list(mean = 1.52, shape = 0.5))
-fit.W <-fitdist(x,"weibull")
+fit.W <- fitdist(x, "weibull")
+fit.W3 <- weibull.mle(x)
 
 
 summary(fit.gamma)
 summary(fit.IG)
-summary(fit.W)
+fit.W3
 
 
+Gamma = rgamma(10000, shape = 0.7480860, rate = 0.4985634)
+IG = rinvgauss(10000, mean = 1.500597, shape = 0.643915)
+W_3 <- rweibull3(10000, shape = 0.65, scale = 1, thres = 0.1)
 
-values = rgamma(1000, shape = 0.7480860, rate = 0.4985634)
-IG = rinvgauss(1000, 1.500597, 0.643915)
-W <- rweibull(1000, shape = 0.7679338, scale = 1.1609)
-
-W_3 <- rweibull3(1000, shape = 0.77, scale = 0.77, thres = 0.18)
-
-ggplot() + geom_density(aes(values)) +
-  geom_density(aes(x), col = "red") +
-  geom_density(aes(IG), col = "green") +
-  geom_density(aes(W_3), col = "blue") + xlim(0,10)
+ggplot() + geom_density(aes(Gamma, col = "Gamma")) +
+  geom_density(aes(x_all, col = "data")) +
+  geom_density(aes(IG, col = "InvGauss")) +
+  geom_density(aes(W_3, col = "Weibull3")) +
+  xlim(0,10) +
+  labs(x = "Eggs")
 
 
-ggplot() + stat_ecdf(aes(values, color = "gamma"), geom = "line") +
-  stat_ecdf(aes(b, color = "data")) +
-  stat_ecdf(aes(IG, color = "Gauss")) +
-  stat_ecdf(aes(W_3, color = "Weibull")) +
-  xlim(0,10)
+ggplot() + stat_ecdf(aes(Gamma, color = "Gamma"), geom = "line") +
+  stat_ecdf(aes(x, color = "data")) +
+  stat_ecdf(aes(IG, color = "Inv_Gauss")) +
+  stat_ecdf(aes(W_3, color = "Weibull3")) +
+  xlim(0,10) +
+  labs(x = "Eggs")
 
 
 
