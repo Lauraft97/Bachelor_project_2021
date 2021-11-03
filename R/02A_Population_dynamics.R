@@ -33,7 +33,7 @@ cow_pop_init <- function(tibble){
 }
 
 # Function to move cows through groups, lactation days and grazing 
-cow_dynamics <- function(tibble){
+cow_dynamics <- function(tibble, sla_prop){
   tibble <- tibble %>% mutate(Age = date - DOB,
                   Group = case_when(Age > month10 & Age < 2*year ~ 2,
                                     Age == 2*year ~ 3,
@@ -57,6 +57,13 @@ cow_dynamics <- function(tibble){
                   Grazing = if_else(month(date) >= 4 & month(date) < 11,
                                     Grazing*1,
                                     Grazing*0.05))
+  #Slaughter
+  tibble <- tibble %>% mutate(slaughter = 
+                            case_when(cycle_day == month10 ~ as.numeric(rbinom(1,1,sla_prop)),
+                                      TRUE ~ 0))
+  tibble <- tibble %>% 
+    filter(!(slaughter == 1))
+  
   return(tibble)
 }
 

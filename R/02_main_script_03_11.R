@@ -169,12 +169,9 @@ for(k in 2:time){
   
   date <- date + 1
   
-  #Slaughter
-  Farm <- Farm %>% mutate(slaughter = 
-                            case_when(cycle_day == month10 ~ as.numeric(rbinom(1,1,sla_prop)),
-                                      TRUE ~ 0))
-  Farm <- Farm %>% 
-    filter(!(slaughter == 1))
+  # Moving through the different groups (cow population dynamics)
+  # 04x_cow_dynamics.R
+  Farm <- cow_dynamics(Farm,sla_prop)
   
   
   # Count the number of cows who will have a calf
@@ -192,9 +189,6 @@ for(k in 2:time){
     ID_no <- ID_no + Births[k]
   } 
   
-  # Moving through the different groups (cow population dynamics)
-  # 04x_cow_dynamics.R
-  Farm <- cow_dynamics(Farm)
   
   # Add calf to the population
   if(Births[k] > 0){
