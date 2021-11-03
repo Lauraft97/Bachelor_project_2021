@@ -23,6 +23,7 @@ Farm_var <- function(Farm_name){
     cDistr = c(1/4,1/4,2/4)
     nCow = 312
     nE0 = 8
+    egg_mu_distr = 1.2095
   }
   
   if(Farm_name == "C2"){
@@ -35,6 +36,7 @@ Farm_var <- function(Farm_name){
     cDistr = c(1/4,1/4,2/4)
     nCow = 331
     nE0 = 15
+    egg_mu_distr = 2.0103
   }
   
   if(Farm_name == "O1"){
@@ -47,6 +49,7 @@ Farm_var <- function(Farm_name){
     cDistr = c(1/4,1/4,2/4)
     nCow = 425
     nE0 = 20
+    egg_mu_distr = 5.4549
   }
   
   if(Farm_name == "O2"){
@@ -59,12 +62,13 @@ Farm_var <- function(Farm_name){
     cDistr = c(1/4,1/4,2/4)
     nCow = 285
     nE0 = 20
+    egg_mu_distr = 3.3353
   }
   
   # Visits in k count
   visit_k <- as.numeric(Visits - First_sample)
   
-  Farm_info <- list(First_sample, Location, Cohort_size, nCow, visit_k, cDistr, nE0)
+  Farm_info <- list(First_sample, Location, Cohort_size, nCow, visit_k, cDistr, nE0,egg_mu_distr)
   
   return(Farm_info)
   

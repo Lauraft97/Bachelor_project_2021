@@ -23,7 +23,7 @@ Rates <- function(date){
   
   rate_exp <-0.2
   
-  if(rain < 1){
+  if(rain < 2){
     
     lambda_ES <- 0
     mu_Egg <- (1-pexp(q = DD,rate = rate_exp))*mu_Egg_max*1.5
@@ -31,16 +31,8 @@ Rates <- function(date){
     mu_M <- (1-pexp(q = DD,rate = rate_exp))*mu_M_max*1.5
   }
   
-  if(rain >= 1 | rain < 10){
-    
-    lambda_ES <- pexp(q = DD,rate = rate_exp)*lambda_ES_max
-    mu_Egg <- (1-pexp(q = DD,rate = rate_exp))*mu_Egg_max*1.25
-    mu_S <- (1-pexp(q = DD,rate = rate_exp))*mu_S_max*1.25
-    mu_M <- (1-pexp(q = DD,rate = rate_exp))*mu_M_max*1.25
-    
-  }
   
-  if(rain >= 10){
+  else{
     
     lambda_ES <- pexp(q = DD,rate = rate_exp)*lambda_ES_max
     mu_Egg <- (1-pexp(q = DD,rate = rate_exp))*mu_Egg_max

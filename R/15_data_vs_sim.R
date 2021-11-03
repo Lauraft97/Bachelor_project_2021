@@ -35,4 +35,4 @@ sick_data <- fluke_diag %>% filter(Farm == "C1", Diag == T) %>% group_by(Visit) 
   
 sick_data %>%  ggplot(aes(x = Visit,
                           y = n)) + geom_point() + geom_point(aes(y = sick_sim$n,
-                                                                  col = "red"))
+                                                                  col = "simulation"))
