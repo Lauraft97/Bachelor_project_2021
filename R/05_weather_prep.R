@@ -32,23 +32,6 @@ sine_ground_vs_air <- function(a_sub,a_add,x){
   }
 }
 
-# x <- c(0:23)
-# y <- rep(0,24)
-# 
-# for (i in x){
-#   y[i+1] <- sine_ground_vs_air(3.5,2,i)
-# }
-# 
-# 
-# ggplot(mapping = aes(x = x,
-#                      y = y)) +
-#   geom_point() +
-#   geom_hline(yintercept = 0, linetype="dashed") + 
-#   labs(title = "sine_ground_vs_air",
-#        x = "Hours",
-#        y = "Degrees to add for ground temperature")
-
-
 #Adding ground temperature variable by using the sine function 
 weather <- weather %>% rowwise() %>% mutate(ground_temp = round(temp+sine_ground_vs_air(3.5,2,Time),2))
 
@@ -97,3 +80,29 @@ save(daily_weather,file = "data/10_model_weather.RData")
 #                        y = mean_ground_temp_ten)) +
 #   geom_line()
 
+
+# Plot of sine function ---------------------------------------------------
+
+x <- c(0:23)
+y <- rep(0,24)
+
+for (i in x){
+  y[i+1] <- sine_ground_vs_air(3.5,2,i)
+}
+
+ggplot(mapping = aes(x = x,
+                     y = y)) +
+  geom_hline(yintercept = 0, linetype = "dashed", col = "gray60") +
+  geom_point(col = color_scheme[1]) +
+  theme_bw(base_size = 8) +
+  labs(title = "Sine function",
+       subtitle = "Function to correct for differences between air and ground temperature",
+       x = "Time [h]",
+       y = "Degrees to add") +
+  theme(axis.title.y = element_text(vjust=1))
+
+ggsave(filename = "results/figures/05_sine_function.png",
+       width = 10, 
+       height = 6.5, 
+       units = "cm",
+       dpi = 150)  

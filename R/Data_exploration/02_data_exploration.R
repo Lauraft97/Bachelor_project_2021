@@ -93,7 +93,8 @@ positive_visit %>% ggplot(mapping = aes(x = Visit,
                                         color = Farm,
                                         group = Farm)) +
                   geom_line() +
-                  geom_point()
+                  geom_point() +
+  scale_color_manual(values = color_scheme[2:5])
 
 # Graph - Number of positives at each visit in each group
 positive_visit_group %>% ggplot(mapping = aes(x = Visit,

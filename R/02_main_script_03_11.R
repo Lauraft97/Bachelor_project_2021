@@ -1,4 +1,4 @@
-# 04 IBM for life cycle stages in cows
+# 02 main script
 
 rm(list = ls())
 
@@ -10,34 +10,31 @@ set.seed(744)
 library(tidyverse)
 library(lubridate)
 library(statmod)
+library(RColorBrewer)
 
 
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")
-source(file = "R/04x_cow_dynamics.R")
-#source(file = "R/11_sunrise_sunset_data.R")
-#source(file = "R/10_ODE_rates.R")
-source(file = "R/10_ODE_temp_mean.R")
-source(file = "R/14_Farm_info.R")
+source(file = "R/02A_Population_dynamics.R")
+source(file = "R/02B_ODE_rates.R")
+source(file = "R/02C_Farm_info.R")
 load("data/10_model_weather.RData")
 
-
-# Model IBM ------------
-# - Each cow is a part of one of the four group
-# - Each cow has a grazing intensity which is an expression of the likelihood of grazing.
-# - Calf are not on grass for the first 4-6 month of their life
+#Colors
+color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
 # Initiation
-Farm_info <- Farm_var("C1")
+Farm_info <- Farm_var("O1")
 
 First_sample <- Farm_info[[1]]
 City <- Farm_info[[2]]
 nCohort <- Farm_info[[3]]
 nCows <- Farm_info[[4]]
 nE0 <- floor(Farm_info[[7]]*nCows/nCohort) 
-egg_mu_distr <- Farm_info[[8]]
-egg_theta_distr <- 0.4633
-
+# egg_mu_distr <- Farm_info[[8]]
+# egg_theta_distr <- 0.4633
+egg_mu_distr <- 2.773
+egg_theta_distr <- 0.287
 
 
 # Time values
@@ -55,7 +52,7 @@ ID_no <- nCows
 M_scaling <- 10^7.5
 
 #Placeholder to fill out
-source(file = "R/98_placeholders.R")
+source(file = "R/02D_placeholders.R")
 
 # ODE Parameters --------------------------------------------------------------
 mu_Egg <- Rates(date)[2]
@@ -324,7 +321,9 @@ S_Cow %>% ggplot(mapping = aes(x = 1:time)) +
   geom_line(aes(y = S2,
                 col = "Heifer")) +
   geom_line(aes(y = S3,
-                col = "Primiparous")) 
+                col = "Primiparous")) +
+  scale_color_brewer(palette = "Set2") +
+  theme_bw()
 
 
 E_Cow %>% ggplot(mapping = aes(x = 1:time)) +
@@ -346,14 +345,17 @@ I_Cow %>% ggplot(mapping = aes(x = 1:time)) +
 
 ggplot(mapping = aes(x = 1:time,
                      y = Pop)) +
-  geom_line()
-
+  geom_line(col = color_scheme[1]) +
+  #scale_color_brewer(palette = "Set2") +
+  theme_bw() +
+  labs(x = "Time [days]",
+       y = "Cattle [#]",
+       title = "Population size") +
+  theme(legend.position = "none")
 
 ggplot(mapping = aes(x = 1:time,
                      y = Snail_pop)) +
   geom_line()
-
-
 
 ggplot(mapping = aes(x = 1:time,
                      y = Egg_new)) +

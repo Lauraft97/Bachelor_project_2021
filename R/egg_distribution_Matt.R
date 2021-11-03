@@ -51,3 +51,9 @@ plot.ecdf(nb, verticals=TRUE)
 plot.ecdf(obs, col="red", add=TRUE, verticals=TRUE)
 
 
+## Using same mean:
+nb <- rnbinom(1e6, theta_mean, mu=dis_mean) %>% `[`(., .>0)
+obs <- data %>% filter(EggCount>0) %>% pull(EggCount)
+plot.ecdf(nb, verticals=TRUE)
+plot.ecdf(obs, col="red", add=TRUE, verticals=TRUE)
+
