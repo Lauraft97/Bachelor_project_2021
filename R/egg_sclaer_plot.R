@@ -26,14 +26,13 @@ egg_scaler <- tibble(sick_period = seq(60,500,1),
 
 egg_scaler %>% ggplot(aes(x = sick_period,
                           y = scaler)) +
-  geom_vline(xintercept = c(90,240),
-             linetype = "dashed",
-             col = "gray60") +
   geom_line(col = color_scheme[1]) +
   theme_bw(base_size = 8)  +
   labs(x = "Sick Period [days]",
        y = "Scaling factor",
-       title = "Eggs excretion scaling factor")
+       title = "Eggs excretion scaling factor") + 
+  scale_x_continuous(breaks = c(60,90,240,300,500))
+
 
 ggsave(filename = "results/figures/egg_scaling_factor.png",
        width = 10, 

@@ -46,7 +46,7 @@ year <- 365
 
 # Parameters --------------------------------------------------------------
 time <- 2*365
-First_DOB <- First_sample - 3.75*year
+First_DOB <- First_sample - 4*year
 date <- First_sample
 ID_no <- nCows
 M_scaling <- 10^7.5
@@ -273,7 +273,6 @@ for(k in 2:time){
   delta_snail <- Rates(date)[3]
   mu_M <- Rates(date)[4]
   
-  #Snail_pop[k] <- season_snail_pop(0.9,2*pi/year,-25,1,k)*Snail_pop0
   Snail_pop[k] <- delta_snail*Snail_pop0
   Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * Snail_pop[k-1])
   E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * Snail_pop[k-1] - alpha * E1_S[k-1])
