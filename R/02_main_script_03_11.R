@@ -49,7 +49,7 @@ time <- 2*365
 First_DOB <- First_sample - 3.75*year
 date <- First_sample
 ID_no <- nCows
-M_scaling <- 10^7.5
+M_scaling <- 10^-7.5
 
 #Placeholder to fill out
 source(file = "R/02D_placeholders.R")
@@ -206,7 +206,8 @@ for(k in 2:time){
   
   
   Farm <- Farm %>%  
-    mutate(E_prop = 1-exp(-Grazing*(M[k-1]/M_scaling)),
+    #CHANGE E_PROP WITH E_PROB
+    mutate(E_prop = 1-exp(-Grazing*(M[k-1]*M_scaling)),
            Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)),
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
