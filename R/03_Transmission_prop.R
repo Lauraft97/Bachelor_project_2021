@@ -93,8 +93,6 @@ I_pr_cow_pr_day <- I_pr_cow / n_days
 
 I_pr_cow_pr_day[,-1]*300
 
-xtable(I_pr_cow_pr_day[,-1])
-
 #Probabilities for infection
 
 metac <- M
