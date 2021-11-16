@@ -36,6 +36,7 @@ a <- fluke_data %>% filter(dEPG == TRUE)
 a %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
 fluke_diag %>% filter(Diag == TRUE) %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
 
+#Cohort size
 fluke_data %>% group_by(Farm) %>% distinct(UniqueID) %>%  summarise(n = n())
 
 Farm_name <- c("C1","C2","O1","O2")
@@ -67,8 +68,8 @@ Farm_data <- fluke_diag %>% filter(Farm == Farm_name[k])
   
   n_Infected[k,i] <- length(ID)
   
-  n_cow[k,i] <- Farm_data %>% distinct(UniqueID) %>% 
-    nrow()
+  n_cow[k,i] <- Farm_data %>% filter(Visit == Visit_name[i]) %>% 
+    distinct(UniqueID) %>% nrow()
   
   Farm_data <- Farm_data %>% filter(!(UniqueID %in% ID))
     
@@ -92,13 +93,13 @@ I_pr_cow_pr_day <- I_pr_cow / n_days
 
 I_pr_cow_pr_day[,-1]*300
 
-
+xtable(I_pr_cow_pr_day[,-1])
 
 #Probabilities for infection
 
 metac <- M
 
-x <- 10^4
+x <- 10^-7.5
 
 cow_prop_mean <- seq(1,length(metac))
 
@@ -106,7 +107,7 @@ for(i in 1:length(metac)){
   
   M_1 <- metac[i]
   grazing <- runif(300,0,1)
-  prop <- 1-exp(-grazing*M_1/x)
+  prop <- 1-exp(-grazing*M_1*x)
   
   cow_prop_mean[i] <- mean(prop)
   
@@ -123,12 +124,15 @@ visits[5] <- mean(cow_prop_mean[346:474])
 visits[6] <- mean(cow_prop_mean[475:620])
 
 
-O1 <- I_pr_cow_pr_day[3,-1]*300
-C1 <- I_pr_cow_pr_day[1,-1]*300
-O2 <- I_pr_cow_pr_day[4,-1]*300
-C2 <- I_pr_cow_pr_day[2,-1]*300
+# O1 <- I_pr_cow_pr_day[3,-1]*425
+# C1 <- I_pr_cow_pr_day[1,-1]*312
+# O2 <- I_pr_cow_pr_day[4,-1]*285
+# C2 <- I_pr_cow_pr_day[2,-1]*331
 
-
+O1 <- I_pr_cow_pr_day[3,-1]
+C1 <- I_pr_cow_pr_day[1,-1]
+O2 <- I_pr_cow_pr_day[4,-1]
+C2 <- I_pr_cow_pr_day[2,-1]
 
 plot(cow_prop_mean) 
 
@@ -137,9 +141,9 @@ points(O1,col = 2)
 points(C1,col = 3)
 points(O2,col = 4)
 points(C2,col = 5)
-abline(h=O1,col = "red")
-abline(h=C1,col = "green")
-abline(h=O2,col = "blue")
+# abline(h=O1,col = "red")
+# abline(h=C1,col = "green")
+# abline(h=O2,col = "blue")
 
 
 

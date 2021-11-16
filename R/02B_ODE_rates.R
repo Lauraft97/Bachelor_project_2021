@@ -21,7 +21,7 @@ Rates <- function(date){
   rain <- daily_weather %>% filter(Date %in% last10Days,location == City) %>% 
     summarise(rain = sum(rain)) %>% pull()
   
-  rate_exp <-0.2
+  rate_exp <-0.24
   
   if(rain < 2){
     
