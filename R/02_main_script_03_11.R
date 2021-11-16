@@ -45,7 +45,7 @@ year <- 365
 
 
 # Parameters --------------------------------------------------------------
-time <- 2*365
+time <- as.numeric(as.Date("2017-12-31")-First_sample)
 First_DOB <- First_sample - 4*year
 date <- First_sample
 ID_no <- nCows
@@ -248,7 +248,7 @@ for(k in 2:time){
   
   if(k %in% Visit_days){
     
-    Cohort_info <- Farm %>% filter(CowID %in% Cohort_cows) %>% select(CowID, DOB, I_period) %>% 
+    Cohort_info <- Farm %>% filter(CowID %in% Cohort_cows) %>% select(CowID, DOB, I_period, Group) %>% 
       mutate(Visit_day_no = k)
     validation <- bind_rows(validation, Cohort_info)
     
