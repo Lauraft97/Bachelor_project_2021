@@ -21,7 +21,7 @@ fluke_data <- fluke_data %>% mutate(Group = if_else(str_detect(Group,"s$"),
 fluke_data <- fluke_data %>% mutate(Group = factor(x = Group,
                                                    levels = c("Calf",
                                                               "Heifer",
-                                                              "Group_3")))
+                                                              "GCows")))
 #Parameters
 year <- 365
 month10 <- 304
