@@ -24,7 +24,7 @@ load("data/10_model_weather.RData")
 color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
 # Initiation
-Farm_info <- Farm_var("O1")
+Farm_info <- Farm_var("C1")
 
 First_sample <- Farm_info[[1]]
 City <- Farm_info[[2]]
@@ -33,7 +33,7 @@ nCows <- Farm_info[[4]]
 nE0 <- floor(Farm_info[[7]]*nCows/nCohort) 
 # egg_mu_distr <- Farm_info[[8]]
 # egg_theta_distr <- 0.4633
-egg_mu_distr <- 2.773
+egg_mu_scaled <- 2.773*(12000/5)
 egg_theta_distr <- 0.287
 
 
@@ -65,13 +65,14 @@ mu_S <- 0.05
 sla_prop <- 0.5
 
 
-Eggs[1] <- 10000
-E1_S[1] <- 100
+Eggs[1] <- 0
+E1_S[1] <- 0
 E2_S[1] <- 0
 I_S[1] <- 0
-R_S[1] <- 0
 M[1] <- 100
-Snail_pop[1] <- 0.5*Snail_pop0
+Snail_pop[1] <- Rates(date)[3]*Snail_pop0
+S_S[1] <- Snail_pop[1] - (E1_S[1]+E2_S[1]+I_S[1])
+
 
 #Vectors for exploration of model
 DD_Temp <- c(rep(0,time))
@@ -207,7 +208,7 @@ for(k in 2:time){
   
   Farm <- Farm %>%  
     #CHANGE E_PROP WITH E_PROB
-    mutate(E_prop = 1-exp(-Grazing*(M[k-1]*M_scaling)),
+    mutate(E_prop = 1-exp(-Grazing*M[k-1]*M_scaling),
            Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)),
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
@@ -252,19 +253,18 @@ for(k in 2:time){
     validation <- bind_rows(validation, Cohort_info)
     
   }
+
   
-  Farm <- Farm %>% mutate(eggs_pr_gram = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                   ~ rnbinom(1,egg_theta_distr,mu = egg_mu_distr)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
+  Farm <- Farm %>% mutate(eggs_pr_cow = case_when(sick_period > 2*30 & sick_period <= 3*30 
+                                                   ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
                                                    sick_period > 3*30 & sick_period <= 8*30 
-                                                   ~ rnbinom(1,egg_theta_distr,mu = egg_mu_distr),
+                                                   ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled),
                                                    sick_period > 8*30 
-                                                   ~ rnbinom(1,egg_theta_distr,mu = egg_mu_distr)*exp(-(0.05*(sick_period-(8*30)))),
+                                                   ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled)*exp(-(0.05*(sick_period-(8*30)))),
                                                    TRUE ~ 0))
   
-  Egg_new[k] <- Farm %>% filter(eggs_pr_gram > 0) %>% 
-    mutate(egg_excreted = (eggs_pr_gram/5) * (15000/5)) %>%
-    ungroup() %>% 
-    summarise(sum(egg_excreted)) %>% pull()
+  Egg_new[k] <- Farm %>% ungroup() %>% 
+    summarise(sum(eggs_pr_cow)) %>% pull()
   
   # Add in mutate cow type and therefore how much faeces.   
   
@@ -275,16 +275,27 @@ for(k in 2:time){
   mu_M <- Rates(date)[4]
   
   Snail_pop[k] <- delta_snail*Snail_pop0
-  Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * Snail_pop[k-1])
-  E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * Snail_pop[k-1] - alpha * E1_S[k-1])
+  S_S[k] <- Snail_pop[k] - (E1_S[k-1]+E2_S[k-1]+I_S[k-1])
+  
+  if(S_S[k] < 0){
+    S_S[k] = 0 
+  }
+  
+  Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * S_S[k])
+  E1_S[k] <- E1_S[k-1] + (lambda_ES * Eggs[k-1] * S_S[k] - alpha * E1_S[k-1])
   E2_S[k] <- E2_S[k-1] + (alpha * E1_S[k-1] - alpha * E2_S[k-1])
   I_S[k] <-  I_S[k-1] + (alpha * E2_S[k-1] - mu_S * I_S[k-1])
-  R_S[k] <-  R_S[k-1] + (mu_S * I_S[k-1])
   M[k] <- M[k-1] + (gamma_S * I_S[k-1] - mu_M * M[k-1])
   
   
   if(Eggs[k] < 0){
     Eggs[k] = 0
+  }
+  
+  if(Snail_pop[k] > 0){
+    Snail_prev[k] = (E1_S[k-1]+E2_S[k-1]+I_S[k-1])/(E1_S[k-1]+E2_S[k-1]+I_S[k-1]+Snail_pop[k-1])
+  } else {
+    Snail_prev[k] = 0
   }
   
   
@@ -380,6 +391,14 @@ ggplot(mapping = aes(x = 1:time,
 ggplot(mapping = aes(x = 1:time,
                      y = I_S)) +
   geom_line()
+
+ggplot(mapping = aes(x = 1:time,
+                     y = S_S)) +
+  geom_line()
+
+ggplot(mapping = aes(x = 1:time,
+                     y = Snail_prev)) +
+  geom_line() 
 
 ggplot(mapping = aes(x = 1:time,
                      y = DD_Temp)) +

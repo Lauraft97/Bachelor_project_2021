@@ -3,9 +3,10 @@ Eggs <- c(rep(0,time))
 E1_S <- c(rep(0,time))  
 E2_S <- c(rep(0,time))
 I_S <-  c(rep(0,time))
-R_S <-  c(rep(0,time))
+S_S <- c(rep(0,time))
 M <- c(rep(0,time))
 Snail_pop <- c(rep(0,time))
+Snail_prev <- c(rep(0,time))
 
 # Data frames to store results for each group
 S_Cow <- tibble(S1 = rep(0,time),
