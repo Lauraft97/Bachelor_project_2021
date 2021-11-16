@@ -23,7 +23,7 @@ run_simulation <- function(FarmID,nruns){
   
   
   # Parameters --------------------------------------------------------------
-  time <- as.numeric(as.Date("2017-12-31")-First_sample)
+  time <- as.integer(as.Date("2017-12-31")-First_sample)
   First_DOB <- First_sample - 4*year
   ID_no <- nCows
   M_scaling <- 10^-7
@@ -273,12 +273,7 @@ run_simulation <- function(FarmID,nruns){
     
   }
   
-  
-  paste0(path,"validation_",FarmID,".Rdata")
-  
-  save(sim_validation,file = paste0("results/validation_",FarmID,".Rdata"))
-  save(sim_IBM,file = paste0("results/IBM_",FarmID,".Rdata"))
-  save(sim_ODE,file = paste0("results/ODE_",FarmID,".Rdata"))
+  return(sim_validation, sim_IBM, sim_ODE)
   
 }
 
