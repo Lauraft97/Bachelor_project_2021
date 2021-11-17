@@ -3,6 +3,8 @@
 rm(list = ls())
 
 library(tidyverse)
+library("RColorBrewer")
+color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
 
 # Import functions --------------------------------------------------------
@@ -31,13 +33,13 @@ fluke_diag <- fluke_data %>% rowwise() %>%
                     na.rm = TRUE),
          Diag = if_else(Diag > 0, TRUE, FALSE))
 
-a <- fluke_data %>% filter(dEPG == TRUE)
+#a <- fluke_data %>% filter(dEPG == TRUE)
 
-a %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
-fluke_diag %>% filter(Diag == TRUE) %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
+#a %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
+#fluke_diag %>% filter(Diag == TRUE) %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
 
 #Cohort size
-fluke_data %>% group_by(Farm) %>% distinct(UniqueID) %>%  summarise(n = n())
+#fluke_data %>% group_by(Farm) %>% distinct(UniqueID) %>%  summarise(n = n())
 
 Farm_name <- c("C1","C2","O1","O2")
 
@@ -87,17 +89,17 @@ n_days[k,] <- diff(dates)
 # Infected per visit per cow susceptible in cohort
 I_pr_cow <- n_Infected / n_cow
 
-I_pr_cow[,-1]
+#I_pr_cow[,-1]
 
 I_pr_cow_pr_day <- I_pr_cow / n_days
 
-I_pr_cow_pr_day[,-1]*300
+#I_pr_cow_pr_day[,-1]*300
 
 #Probabilities for infection
 
 metac <- M
 
-x <- 10^-7.5
+x <- 10^-6.5
 
 cow_prop_mean <- seq(1,length(metac))
 
@@ -108,7 +110,6 @@ for(i in 1:length(metac)){
   prop <- 1-exp(-grazing*M_1*x)
   
   cow_prop_mean[i] <- mean(prop)
-  
 }
 
 
@@ -121,29 +122,47 @@ visits[4] <- mean(cow_prop_mean[277:345])
 visits[5] <- mean(cow_prop_mean[346:474])
 visits[6] <- mean(cow_prop_mean[475:620])
 
-
-# O1 <- I_pr_cow_pr_day[3,-1]*425
-# C1 <- I_pr_cow_pr_day[1,-1]*312
-# O2 <- I_pr_cow_pr_day[4,-1]*285
-# C2 <- I_pr_cow_pr_day[2,-1]*331
-
 O1 <- I_pr_cow_pr_day[3,-1]
 C1 <- I_pr_cow_pr_day[1,-1]
 O2 <- I_pr_cow_pr_day[4,-1]
-C2 <- I_pr_cow_pr_day[2,-1]
+C2 <- as.numeric(I_pr_cow_pr_day[2,-1])
 
-plot(cow_prop_mean) 
+#Plot
+sim_transmission <- tibble(dates = c("B","C","D","E","F","G"),
+                           simulation = visits,
+                           C1 = as.numeric(I_pr_cow_pr_day[1,-1]),
+                           C2 = as.numeric(I_pr_cow_pr_day[2,-1]),
+                           O1 = as.numeric(I_pr_cow_pr_day[3,-1]),
+                           O2 = as.numeric(I_pr_cow_pr_day[4,-1]))
 
-plot(visits)
-points(O1,col = 2)
-points(C1,col = 3)
-points(O2,col = 4)
-points(C2,col = 5)
-# abline(h=O1,col = "red")
-# abline(h=C1,col = "green")
-# abline(h=O2,col = "blue")
+sim_transmission %>% ggplot(mapping = aes(x = dates,
+                                          group = 4)) +
+  geom_point(aes(y = simulation, col ="Simulation"), shape = 4, size = 3) +
+  geom_point(aes(y = C1, col = "C1"))+ 
+  geom_line(aes(y = C1), color = color_scheme[4])+
+  geom_point(aes(y = C2,col ="C2"))+
+  geom_line(aes(y = C2),col = color_scheme[5])+
+  geom_point(aes(y = O1, col = "O1"))+
+  geom_line(aes(y = O1),col = color_scheme[6])+
+  geom_point(aes(y = O2, col="O2"))+
+  geom_line(aes(y = O2),col = color_scheme[8])+
+  theme(legend.position = "bottom") +
+  theme_bw(base_size = 8) +
+  scale_color_manual(name="Farm name",
+                     breaks=c("Simulation", "C1", "C2", "O1","O2"),
+                     values=c("Simulation"= 1, "C1" = color_scheme[4],
+                              "C2" = color_scheme[5],"O1" = color_scheme[6],
+                              "O2" = color_scheme[8]),
+                     guide = guide_legend(override.aes = list(shape = c(4, 16, 16, 16, 16),
+                                                              size = c(2,2,2,2,2))))+
+  labs(x = "Visit",
+       y = "Transmission proberbility",
+       title = "Comparing simulated transmission probabilities with farm data",
+       subtitle = "Scaling factor = 10^(-7)")
 
-
-
-
+ggsave(filename = "results/figures/03_trans_prob.png",
+       width = 10*1.5, 
+       height = 6.5, 
+       units = "cm",
+       dpi = 150) 
 

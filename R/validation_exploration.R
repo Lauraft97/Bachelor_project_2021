@@ -14,14 +14,14 @@ fluke_data <- read_tsv(file = "data/01_fluke_data_clean.tsv")
 
 
 fluke_data <- fluke_data %>% mutate(Group = if_else(str_detect(Group,"s$"),
-                                                    "Group_3",
+                                                    "Cow",
                                                      Group))
 
 
 fluke_data <- fluke_data %>% mutate(Group = factor(x = Group,
                                                    levels = c("Calf",
                                                               "Heifer",
-                                                              "GCows")))
+                                                              "Cow")))
 #Parameters
 year <- 365
 month10 <- 304
@@ -58,6 +58,13 @@ fluke_infected <- fluke_diag %>% group_by(UniqueID) %>%
                   mutate(model_group = case_when(Cow_Age <= month10 ~ 1,
                                                  Cow_Age > month10 & First_sample - DOB <= 2*year ~ 2,
                                                  Cow_Age > 2*year ~ 3))
+
+
+fluke_infected <- fluke_diag %>% 
+  mutate(model_group = case_when(Cow_Age <= month10 ~ 1,
+                                 Cow_Age > month10 & First_sample - DOB <= 2*year ~ 2,
+                                 Cow_Age > 2*year ~ 3))
+
 
 inf_count <- fluke_infected %>% group_by(Farm, Visit, model_group) %>% 
                    summarise(inf = n()) 
