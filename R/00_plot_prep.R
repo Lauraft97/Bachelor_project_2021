@@ -4,8 +4,8 @@ source(file = "R/02C_Farm_info.R")
 
 library(tidyverse)
 
-FarmID = "C1"
-nruns = 3
+FarmID = "O2"
+nruns = 10
 
 
 load(paste0("results/validation_",FarmID,".Rdata"))
@@ -13,6 +13,7 @@ load(paste0("results/IBM_",FarmID,".Rdata"))
 load(paste0("results/ODE_",FarmID,".Rdata"))
 
 time <- as.integer(as.Date("2017-12-31")-Farm_var(FarmID)[[1]])
+
 
 
 # Validation data
@@ -81,6 +82,36 @@ results_ODE_Egg <- ODE_Egg %>%
          upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se,
          lower.ci = if_else(lower.ci < 0,0,lower.ci)) 
 
+
+results_validation <- validation %>% filter(I_period > 0) %>% 
+  group_by(Visit_day_no,Group,Simulation) %>% summarise(Count = n()) %>% 
+  ungroup()
+  
+  
+  
+# results_validation_groups <- results_validation %>% 
+#     group_by(Visit_day_no,Group) %>% 
+#   summarise(mean = mean(Count, na.rm = TRUE),
+#             sd = sd(Count, na.rm = TRUE),
+#             n = n()) %>%
+#   mutate(se = sd / sqrt(n),
+#          lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+#          upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se)
+
+
+results_validation_total <- results_validation %>% 
+  group_by(Visit_day_no, Simulation) %>% 
+  summarise(Count = sum(Count))
+  
+  
+  
+results_validation_total <- results_validation_total %>% 
+  group_by(Visit_day_no) %>% 
+  summarise(mean = mean(Count))
+
+
+
+  
 
 
 

@@ -17,7 +17,9 @@ fm_zinb <- zeroinfl(EggCount ~ Farm | Farm, data = data, dist = "negbin")
 
 fm_zinb_mean <- zeroinfl(EggCount ~ 1 | Farm, data = data, dist = "negbin")
 
-dis_mean <- exp(1.02)
+zeroinfl(EggCount ~ 1 | 1, data = data, dist = "negbin")
+
+dis_mean <- exp(1.025)
 theta_mean <- fm_zinb_mean$theta
 
 
