@@ -28,7 +28,7 @@ cow_pop_init <- function(tibble){
            n_calfs = case_when(Group == 3 & Age < 3*year ~ 1,
                                Group == 3 & (Age >= 3*year & Age <= 4*year) ~ 2,
                                TRUE ~ 0),
-           Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.5),#Milking cows 
+           Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.6),#Milking cows 
                                #Calfs under 5 months do note graze
                                Age <= month5 ~ runif(1,0,0.1), 
                                #Calfs 5-9 month graze with heifers (2 years of age) 
