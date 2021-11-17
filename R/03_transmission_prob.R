@@ -99,7 +99,7 @@ I_pr_cow_pr_day <- I_pr_cow / n_days
 
 metac <- M
 
-x <- 10^-7
+x <- 10^-6.5
 
 cow_prop_mean <- seq(1,length(metac))
 
@@ -157,7 +157,7 @@ sim_transmission %>% ggplot(mapping = aes(x = dates,
                                                               size = c(2,2,2,2,2))))+
   labs(x = "Visit",
        y = "Transmission proberbility",
-       title = "Comparing simulated transmission probabilities with real data from the 4 farms",
+       title = "Comparing simulated transmission probabilities with farm data",
        subtitle = "Scaling factor = 10^(-7)")
 
 ggsave(filename = "results/figures/03_trans_prob.png",
