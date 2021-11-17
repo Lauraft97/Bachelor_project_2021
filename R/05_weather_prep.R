@@ -2,6 +2,10 @@
 load("data/raw_data/weather.rda")
 
 library(tidyverse)
+library("RColorBrewer")
+library(lubridate)
+library(patchwork)
+color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")
@@ -106,3 +110,76 @@ ggsave(filename = "results/figures/05_sine_function.png",
        height = 6.5, 
        units = "cm",
        dpi = 150)  
+
+
+
+# Plot of temperature -----------------------------------------------------
+First_sample <- as.Date("2015-04-27")
+# daily_weather %>% filter(Date >= First_sample & Date <= as.Date("2017-12-31")) %>% 
+#   ggplot(mapping = aes(x = Date,
+#                        y = mean_ground_temp,
+#                        col = location)) +
+#   geom_line() +
+#   geom_hline(yintercept = 10)+
+#   geom_hline(yintercept = 25)
+
+daily_weather %>% filter(Date >= First_sample & Date <= as.Date("2017-12-31")) %>% 
+  ggplot(mapping = aes(x = Date,
+                       y = mean_ground_temp_ten)) +
+  theme_bw(base_size = 8)+
+  geom_line()+
+  labs(y = "Corrected ground temperature")+
+  facet_wrap(~location, nrow = 2)
+
+ggsave(filename = "results/figures/05_corr_temp.png") 
+
+# Rain plot and exploration -----------------------------------------------
+
+rain_toender <- rep(0,979)
+rain_frederikssund <- rep(0,979)
+
+for(i in c(1:length(rain_toender))){
+
+  date <- First_sample + i
+
+  last10Days <- date - 0:9
+
+  rain_toender[i] <- daily_weather %>% filter(Date %in% last10Days,location == "Toender") %>%
+    summarise(rain = sum(rain)) %>% pull()
+
+  rain_frederikssund[i] <- daily_weather %>% filter(Date %in% last10Days,location == "Frederikssund") %>%
+    summarise(rain = sum(rain)) %>% pull()
+}
+
+rain <- tibble(rain_toender, rain_frederikssund)
+
+p_toender <- rain %>% ggplot(aes(x = 1:length(rain_frederikssund))) +
+  geom_line(aes(y = rain_toender, col = "Tønder"))+
+  geom_hline(yintercept = 2, linetype = "dashed", col = "gray60") +
+  labs(x = "days",
+       y = "rain [mm]",
+       title = "Tønder") +
+  theme_bw() +
+  theme(legend.position = "none")+ 
+  coord_cartesian(ylim=c(0, 25))
+
+p_frederikssund <- rain %>% ggplot(aes(x = 1:length(rain_frederikssund))) +
+  geom_line(aes(y = rain_frederikssund, col = "Frederikssund")) +
+  geom_hline(yintercept = 2, linetype = "dashed", col = "gray60") +
+  labs(x = "days",
+       y = "rain [mm]",
+       title = "Frederikssund") +
+  theme_bw(base_size = 10) +
+  theme(legend.position = "none") + 
+  coord_cartesian(ylim=c(0, 25))
+
+p_toender / p_frederikssund
+
+ggsave(filename = "results/figures/05_rain.png")
+
+
+# rain %>% filter(rain_frederikssund <= 1) %>% 
+#   summarise(n = n())
+
+
+
