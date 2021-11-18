@@ -59,8 +59,8 @@ plot_SEI <- function(FarmID,nruns){
   
   #Plot -------------------------------------------
   S <- results_IBM_S %>% ggplot(aes(x = timestep,
-                                       y = mean,
-                                       color = Group)) +
+                                    y = mean,
+                                    color = Group)) +
     geom_line() + 
     scale_color_manual(values=c(color_scheme[2], 
                                 color_scheme[7], 
@@ -79,8 +79,8 @@ plot_SEI <- function(FarmID,nruns){
   
   
   E <- results_IBM_E %>% ggplot(aes(x = timestep,
-                                       y = mean,
-                                       color = Group)) +
+                                    y = mean,
+                                    color = Group)) +
     geom_line() + 
     scale_color_manual(values=c(color_scheme[2], 
                                 color_scheme[7], 
@@ -97,8 +97,8 @@ plot_SEI <- function(FarmID,nruns){
   
   
   I <- results_IBM_I %>% ggplot(aes(x = timestep,
-                                       y = mean,
-                                       color = Group)) +
+                                    y = mean,
+                                    color = Group)) +
     geom_line() + 
     scale_color_manual(values=c(color_scheme[2], 
                                 color_scheme[7], 
@@ -117,7 +117,7 @@ plot_SEI <- function(FarmID,nruns){
   
   
   # Return from function ----------------
-
+  
   return(p)
 }
 
@@ -134,7 +134,7 @@ plot_ODE <- function(FarmID,ODEVar){
   
   color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
   color_df <- as.data.frame(cbind(var = c("Non", "G1", "G3", "C1", "C2", "O1", "G2", "O2"),
-                                 color_scheme))
+                                  color_scheme))
   
   Farm_col <- color_df %>% filter(var == FarmID) %>% select(color_scheme) %>% pull()
   
@@ -169,8 +169,8 @@ plot_ODE <- function(FarmID,ODEVar){
   # Plot results -----------------------
   
   p <- results_ODE %>% ggplot(aes(x = 1:time,
-                                y = mean,
-                             color = "Mean")) +
+                                  y = mean,
+                                  color = "Mean")) +
     geom_line() +
     scale_color_manual(values=Farm_col,
                        labels = c("Mean")) +
