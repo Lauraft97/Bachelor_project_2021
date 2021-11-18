@@ -2,6 +2,9 @@
 load("data/raw_data/weather.rda")
 
 library(tidyverse)
+library("RColorBrewer")
+library(lubridate)
+color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")
@@ -106,3 +109,67 @@ ggsave(filename = "results/figures/05_sine_function.png",
        height = 6.5, 
        units = "cm",
        dpi = 150)  
+
+
+
+# Plot of temperature -----------------------------------------------------
+
+daily_weather %>% filter(Date >= First_sample & Date <= as.Date("2017-12-31")) %>% 
+  ggplot(mapping = aes(x = Date,
+                       y = mean_ground_temp,
+                       col = location)) +
+  geom_line() +
+  geom_hline(yintercept = 10)+
+  geom_hline(yintercept = 25)
+
+daily_weather %>% filter(Date >= First_sample & Date <= as.Date("2017-12-31")) %>% 
+  ggplot(mapping = aes(x = Date,
+                       y = mean_ground_temp_ten,
+                       col = location)) +
+  geom_line()
+
+
+# Rain plot and exploration -----------------------------------------------
+
+First_sample <- as.Date("2015-04-27")
+rain_toender <- rep(0,979)
+rain_frederikssund <- rep(0,979)
+
+for(i in c(1:length(rain_toender))){
+
+  date <- First_sample + i
+
+  last10Days <- date - 0:9
+
+  rain_toender[i] <- daily_weather %>% filter(Date %in% last10Days,location == "Toender") %>%
+    summarise(rain = sum(rain)) %>% pull()
+
+  rain_frederikssund[i] <- daily_weather %>% filter(Date %in% last10Days,location == "Frederikssund") %>%
+    summarise(rain = sum(rain)) %>% pull()
+}
+
+rain <- tibble(rain_toender, rain_frederikssund)
+
+rain %>% ggplot(aes(x = 1:length(rain_frederikssund))) +
+  geom_line(aes(y = rain_toender, col = "Tønder"))+
+  geom_line(aes(y = rain_frederikssund, col = "Frederikssund")) +
+  geom_hline(yintercept = 2, linetype = "dashed", col = "gray60") +
+  labs(x = "days",
+       y = "rain [mm]",
+       title = "Cummulative rainfall in the past 10 days") +
+  theme_bw()+
+  scale_color_manual(name="Location",values=c("Frederikssund"= 1, "Tønder" = 2))
+  
+
+rain %>% ggplot(aes(x = 1:length(rain_frederikssund))) +
+         geom_line(aes(y = rain_toender)) +
+         geom_line(aes(y = rain_frederikssund, col = "red")) +
+         geom_hline(yintercept = 3)
+
+
+
+# rain %>% filter(rain_frederikssund <= 1) %>% 
+#   summarise(n = n())
+
+
+
