@@ -13,6 +13,7 @@ load(paste0("results/IBM_",FarmID,".Rdata"))
 load(paste0("results/ODE_",FarmID,".Rdata"))
 
 time <- as.integer(as.Date("2017-12-31")-Farm_var(FarmID)[[1]])
+visit_days_n <- Farm_var(FarmID)[[5]]
 
 
 
@@ -83,6 +84,28 @@ results_ODE_Egg <- ODE_Egg %>%
          lower.ci = if_else(lower.ci < 0,0,lower.ci)) 
 
 
+
+results_ODE_E1 <- ODE_E1 %>%
+  rowwise() %>% 
+  mutate(mean = mean(c(V1,V2,V3)),
+         sd = sd(c(V1,V2,V3)),
+         n = length(c(V1,V2,V3)),
+         se = sd / sqrt(n),
+         lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se,
+         lower.ci = if_else(lower.ci < 0,0,lower.ci)) 
+
+results_ODE_M <- ODE_M %>%
+  rowwise() %>% 
+  mutate(mean = mean(c(V1,V2,V3)),
+         sd = sd(c(V1,V2,V3)),
+         n = length(c(V1,V2,V3)),
+         se = sd / sqrt(n),
+         lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se,
+         lower.ci = if_else(lower.ci < 0,0,lower.ci)) 
+
+
 results_validation <- validation %>% filter(I_period > 0) %>% 
   group_by(Visit_day_no,Group,Simulation) %>% summarise(Count = n()) %>% 
   ungroup()
@@ -138,7 +161,8 @@ results_ODE_Egg %>% ggplot(aes(x = 1:time,
             linetype = 2) +
   geom_line(aes(y = upper.ci,
                 color = "Lower"),
-            linetype = 2)
+            linetype = 2) +
+  labs(title = "Eggs mean + 95 % CI")
 
 
 
