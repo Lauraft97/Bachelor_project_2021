@@ -154,23 +154,63 @@ sick_sim <- sick_sim %>% mutate(Visit = case_when(Visit_day_no == visit_days_n[1
                                                   Visit_day_no == visit_days_n[3] ~ "D",
                                                   Visit_day_no == visit_days_n[4] ~ "E",
                                                   Visit_day_no == visit_days_n[5] ~ "F",
-                                                  Visit_day_no == visit_days_n[6] ~ "G"),
-                                Sim = T) %>% 
+                                                  Visit_day_no == visit_days_n[6] ~ "G")) %>% 
+  
   ungroup() %>% 
-  select(Visit,Count,Sim)
+  select(Visit,Count,Simulation)
 
 
 sick_data <- fluke_diag %>% filter(Farm == "O2", Diag == T) %>% group_by(Visit) %>% 
-              summarise(Count = n()) %>% slice(-1) %>% mutate(Sim = F)
+              summarise(Count = n()) %>% slice(-1) %>% mutate(Simulation = "Data")
 
 plot_data <- bind_rows(sick_sim,sick_data)
 
 
 plot_data %>%  ggplot(aes(x = Visit,
                           y = Count,
-                          color = Sim)) + geom_point()
+                          color = Sim)) + geom_point() +
+  labs(title = "Farm O2, 10 simulations vs real data")
+
+
+plot_data %>%  ggplot(aes(x = Visit,
+                          y = Count,
+                          group = Simulation)) + 
+  geom_point(aes(shape = Simulation, 
+                 color = Simulation,
+                 size = Simulation)) +
+  geom_line(aes(color = Simulation)) + 
+  scale_shape_manual(values=c(4, rep(16,10))) +
+  scale_color_manual(values = c("black",rep(color_scheme[8],10))) +
+  scale_size_manual(values=c(3,rep(1,10))) +
+  theme_bw() +
+  labs(title = "Farm O2, 10 simulations vs real data")
 
 
 
 
+
+# ODE ---------------------------------------------------------------------
+
+results_ODE_E1 %>% ggplot(aes(x = 1:time,
+                               y = mean)) +
+  geom_line() +
+  geom_line(aes(y = lower.ci,
+                color = "Lower"),
+            linetype = 2) +
+  geom_line(aes(y = upper.ci,
+                color = "Lower"),
+            linetype = 2) +
+  labs(title = "E1 snail mean + 95 % CI")
+
+
+results_ODE_M %>% ggplot(aes(x = 1:time,
+                              y = mean)) +
+  geom_line() +
+  geom_line(aes(y = lower.ci,
+                color = "Lower"),
+            linetype = 2) +
+  geom_line(aes(y = upper.ci,
+                color = "Lower"),
+            linetype = 2) +
+  labs(title = "Metacercariae mean + 95 % CI")
 
