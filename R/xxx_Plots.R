@@ -2,11 +2,6 @@ color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
 library(patchwork)
 
-
-# Other plots -------------------------------------------------------------
-
-
-
 # Temperature dependent exponential distribution CDF
 x = seq(0,25,0.5)
 ggplot(mapping = aes(x = x,
@@ -50,10 +45,11 @@ ggsave(filename = "results/figures/mu_scalar.png",
 
 
 
+# Results SEI -----------------------------------------------------------------
 
-# O2 - SEI ------------------------------------------------------
+# O2 - SEI
 
-S_O2 <- results_IBM_S %>% ggplot(aes(x = timestep,
+S <- results_IBM_S %>% ggplot(aes(x = timestep,
                                   y = mean,
                                   color = Group)) +
   geom_line() + 
@@ -73,7 +69,7 @@ S_O2 <- results_IBM_S %>% ggplot(aes(x = timestep,
 
 
 
-E_O2 <- results_IBM_E %>% ggplot(aes(x = timestep,
+E <- results_IBM_E %>% ggplot(aes(x = timestep,
                              y = mean,
                              color = Group)) +
   geom_line() + 
@@ -91,7 +87,7 @@ E_O2 <- results_IBM_E %>% ggplot(aes(x = timestep,
   theme(axis.text.x=element_blank())
 
 
-I_O2 <- results_IBM_I %>% ggplot(aes(x = timestep,
+I <- results_IBM_I %>% ggplot(aes(x = timestep,
                                   y = mean,
                                   color = Group)) +
   geom_line() + 
@@ -108,13 +104,7 @@ I_O2 <- results_IBM_I %>% ggplot(aes(x = timestep,
              linetype = "dashed") +
   theme(legend.position = "none")
 
-S_O2/E_O2/I_O2 + plot_annotation(title = "Farm O2")
-
-
-
-
-
-
+S/E/I + plot_annotation(title = "Farm O2")
 
 
 
@@ -133,8 +123,17 @@ S_O2/E_O2/I_O2 + plot_annotation(title = "Farm O2")
 
 # Validation --------------------------------------------------------------
 
-# Load data 
+# Load data ---------------------------------------------------------------
 fluke_data <- read_tsv(file = "data/01_fluke_data_clean.tsv")
+
+
+# Convert to factors ------------------------------------------------------
+
+fluke_data <- fluke_data %>% mutate(Group = factor(x = Group,
+                                                   levels = c("Calf",
+                                                              "Heifer",
+                                                              "Primiparous",
+                                                              "Multiparous")))
 
 # Subsetting all the cows which at some point have a positive test
 # Divides data sets into each farm
@@ -148,29 +147,21 @@ fluke_diag <- fluke_data %>% rowwise() %>%
 
 sick_sim <- results_validation_total
 
-
-sick_sim <- sick_sim %>% mutate(Visit = case_when(Visit_day_no == visit_days_n[1] ~ "B",
-                                                  Visit_day_no == visit_days_n[2] ~ "C",
-                                                  Visit_day_no == visit_days_n[3] ~ "D",
-                                                  Visit_day_no == visit_days_n[4] ~ "E",
-                                                  Visit_day_no == visit_days_n[5] ~ "F",
-                                                  Visit_day_no == visit_days_n[6] ~ "G"),
-                                Sim = T) %>% 
-  ungroup() %>% 
-  select(Visit,Count,Sim)
+sick_sim %>% ggplot(aes(x = Visit_day_no,
+                        y = n)) + geom_line()
 
 
-sick_data <- fluke_diag %>% filter(Farm == "O2", Diag == T) %>% group_by(Visit) %>% 
-              summarise(Count = n()) %>% slice(-1) %>% mutate(Sim = F)
+sick_data <- fluke_diag %>% filter(Farm == "O2", Diag == T) %>% group_by(Visit) %>% summarise(n = n()) %>% slice(-1) 
 
-plot_data <- bind_rows(sick_sim,sick_data)
-
-
-plot_data %>%  ggplot(aes(x = Visit,
-                          y = Count,
-                          color = Sim)) + geom_point()
+sick_data %>%  ggplot(aes(x = Visit,
+                          y = n)) + geom_point() + geom_point(aes(y = sick_sim$mean,
+                                                                  col = "simulation")) 
 
 
+results_validation_total %>% ggplot(aes(x = Visit_day_no,
+                                        y = Count,
+                                        col = Simulation)) +
+  geom_point() 
 
 
 
