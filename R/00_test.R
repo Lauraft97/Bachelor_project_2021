@@ -33,7 +33,7 @@ library(statmod)
   time <- as.integer(as.Date("2017-12-31")-First_sample)
   First_DOB <- First_sample - 4*year
   ID_no <- nCows
-  M_scaling <- 10^-7
+  M_scaling <- 10^-6.5
   egg_mu_scaled <- 2.773*(12000/5)
   egg_theta_distr <- 0.287
 
