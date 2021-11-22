@@ -42,6 +42,8 @@ sla_prob_vec <- c(0.1,0.3,0.5,0.7,0.9)
 Pop <- matrix(NA, ncol = time, nrow = length(sla_prob_vec))
 Births <- rep(0,time)
 
+time.left <- time*length(sla_prob_vec)
+
 for(i in 1:length(sla_prob_vec)){
  date <- First_sample
  sla_prob <- sla_prob_vec[i]
@@ -113,8 +115,9 @@ for(i in 1:length(sla_prob_vec)){
       Farm <- bind_rows(Farm,new_calf)
     }
     
-    print(time-k)  
+    print(time.left)  
     Pop[i,k] <- Farm %>% nrow()
+    time.left <- time.left - 1
   }
   
   

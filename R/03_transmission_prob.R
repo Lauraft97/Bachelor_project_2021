@@ -101,26 +101,26 @@ metac <- M
 
 x <- 10^-6.5
 
-cow_prop_mean <- seq(1,length(metac))
+cow_prob_mean <- seq(1,length(metac))
 
 for(i in 1:length(metac)){
   
   M_1 <- metac[i]
   grazing <- runif(300,0,1)
-  prop <- 1-exp(-grazing*M_1*x)
+  prob <- 1-exp(-grazing*M_1*x)
   
-  cow_prop_mean[i] <- mean(prop)
+  cow_prob_mean[i] <- mean(prob)
 }
 
 
 visits <- seq(1,6)
 
-visits[1] <- mean(cow_prop_mean[1:95])
-visits[2] <- mean(cow_prop_mean[96:195])
-visits[3] <- mean(cow_prop_mean[196:276])
-visits[4] <- mean(cow_prop_mean[277:345])
-visits[5] <- mean(cow_prop_mean[346:474])
-visits[6] <- mean(cow_prop_mean[475:620])
+visits[1] <- mean(cow_prob_mean[1:95])
+visits[2] <- mean(cow_prob_mean[96:195])
+visits[3] <- mean(cow_prob_mean[196:276])
+visits[4] <- mean(cow_prob_mean[277:345])
+visits[5] <- mean(cow_prob_mean[346:474])
+visits[6] <- mean(cow_prob_mean[475:620])
 
 O1 <- I_pr_cow_pr_day[3,-1]
 C1 <- I_pr_cow_pr_day[1,-1]
