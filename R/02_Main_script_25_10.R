@@ -148,7 +148,7 @@ starttime <- Sys.time()
 
 for(k in 2:time){
   
-  # # The E_prop is something that should be calculated and therefore it is just the grazing
+  # # The E_prob is something that should be calculated and therefore it is just the grazing
   # #factor right now. 
   
   #FARM tibble
@@ -207,8 +207,8 @@ for(k in 2:time){
   
   
   Farm <- Farm %>%  
-    mutate(E_prop = 1-exp(-Grazing*(M[k-1]/M_scaling)),
-           Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)),
+    mutate(E_prob = 1-exp(-Grazing*(M[k-1]/M_scaling)),
+           Exposed = case_when(State == 1 ~ rbinom(1,1,E_prob)),
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
                              TRUE ~ State),

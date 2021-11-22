@@ -62,7 +62,7 @@ Snail_pop0 <- 10^4
 alpha <- 2/(6*7)
 gamma_S <- 2
 mu_S <- 0.05
-sla_prop <- 0.5
+sla_prob <- 0.5
 
 
 Eggs[1] <- 0
@@ -150,7 +150,7 @@ starttime <- Sys.time()
 
 for(k in 2:time){
   
-  # # The E_prop is something that should be calculated and therefore it is just the grazing
+  # # The E_prob is something that should be calculated and therefore it is just the grazing
   # #factor right now. 
   
   #FARM tibble
@@ -169,7 +169,7 @@ for(k in 2:time){
   
   # Moving through the different groups (cow population dynamics)
   # 04x_cow_dynamics.R
-  Farm <- cow_dynamics(Farm,sla_prop)
+  Farm <- cow_dynamics(Farm,sla_prob)
   
   
   # Count the number of cows who will have a calf
@@ -207,9 +207,9 @@ for(k in 2:time){
   
   
   Farm <- Farm %>%  
-    #CHANGE E_PROP WITH E_PROB
-    mutate(E_prop = 1-exp(-Grazing*M[k-1]*M_scaling),
-           Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)),
+    #CHANGE E_prob WITH E_PROB
+    mutate(E_prob = 1-exp(-Grazing*M[k-1]*M_scaling),
+           Exposed = case_when(State == 1 ~ rbinom(1,1,E_prob)),
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
                              TRUE ~ State),
