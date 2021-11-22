@@ -101,7 +101,7 @@ Farm <- tibble(CowID = 1:nCows,
                E_period = 0,
                I_period = 0,
                sick_period = 0,
-               n_calfs = 0,
+               n_calf = 0,
                cycle_day = 0,
                Grazing = 0,
                Age = as.numeric(First_sample-DOB))
@@ -190,7 +190,7 @@ for(k in 2:time){
   
   # Add calf to the population
   if(Births[k] > 0){
-    new_calfs <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
+    new_calf <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
                         DOB = date,
                         Group = 1,
                         Lactation = NA,
@@ -198,11 +198,11 @@ for(k in 2:time){
                         E_period = 0,
                         I_period = 0,
                         sick_period = 0,
-                        n_calfs = 0,
+                        n_calf = 0,
                         cycle_day = NA,
                         Grazing = runif(Births[k],0,0.1))
     
-    Farm <- bind_rows(Farm,new_calfs)
+    Farm <- bind_rows(Farm,new_calf)
   }
   
   
