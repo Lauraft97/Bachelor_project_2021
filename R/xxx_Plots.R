@@ -117,20 +117,6 @@ S_O2/E_O2/I_O2 + plot_annotation(title = "Farm O2")
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Validation --------------------------------------------------------------
 
 # Load data 
@@ -160,7 +146,7 @@ sick_sim <- sick_sim %>% mutate(Visit = case_when(Visit_day_no == visit_days_n[1
   select(Visit,Count,Simulation)
 
 
-sick_data <- fluke_diag %>% filter(Farm == "O2", Diag == T) %>% group_by(Visit) %>% 
+sick_data <- fluke_diag %>% filter(Farm == "C2", Diag == T) %>% group_by(Visit) %>% 
               summarise(Count = n()) %>% slice(-1) %>% mutate(Simulation = "Data")
 
 plot_data <- bind_rows(sick_sim,sick_data)
@@ -179,11 +165,11 @@ plot_data %>%  ggplot(aes(x = Visit,
                  color = Simulation,
                  size = Simulation)) +
   geom_line(aes(color = Simulation)) + 
-  scale_shape_manual(values=c(4, rep(16,10))) +
-  scale_color_manual(values = c("black",rep(color_scheme[8],10))) +
-  scale_size_manual(values=c(3,rep(1,10))) +
+  scale_shape_manual(values=c(rep(16,10),4)) +
+  scale_color_manual(values = c(rep(color_scheme[5],10),"black")) +
+  scale_size_manual(values=c(rep(1,10),3)) +
   theme_bw() +
-  labs(title = "Farm O2, 10 simulations vs real data")
+  labs(title = "Farm C2 - Simulations and farm data")
 
 
 
@@ -213,4 +199,57 @@ results_ODE_M %>% ggplot(aes(x = 1:time,
                 color = "Lower"),
             linetype = 2) +
   labs(title = "Metacercariae mean + 95 % CI")
+
+
+
+
+
+
+# Validation within groups
+
+
+sick_sim_group <- results_validation %>% mutate(Visit = case_when(Visit_day_no == visit_days_n[1] ~ "B",
+                                                  Visit_day_no == visit_days_n[2] ~ "C",
+                                                  Visit_day_no == visit_days_n[3] ~ "D",
+                                                  Visit_day_no == visit_days_n[4] ~ "E",
+                                                  Visit_day_no == visit_days_n[5] ~ "F",
+                                                  Visit_day_no == visit_days_n[6] ~ "G")) 
+
+
+
+inf_count_2 <- inf_count %>% mutate(Simulation = "Data") %>%  filter(model_group == 2, Farm == "C2") 
+
+
+plot_data_2 <- bind_rows(sick_sim_group,inf_count_2)
+  
+
+plot_data_2 %>%  ggplot(aes(x = Visit,
+                          y = Count,
+                          group = Simulation)) + 
+  geom_point(aes(shape = Simulation, 
+                 color = Simulation,
+                 size = Simulation)) +
+  geom_line(aes(color = Simulation)) + 
+  scale_shape_manual(values=c(rep(16,10),4)) +
+  scale_color_manual(values = c(rep(color_scheme[5],10),"black")) +
+  scale_size_manual(values=c(rep(1,10),3)) +
+  theme_bw() +
+  labs(title = "Farm C2 - Simulations and farm data")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
