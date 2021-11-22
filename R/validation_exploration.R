@@ -67,7 +67,7 @@ fluke_infected <- fluke_diag %>%
 
 
 inf_count <- fluke_infected %>% group_by(Farm, Visit, model_group) %>% 
-                   summarise(inf = n()) 
+                   summarise(Count = n()) 
 
 inf_count <- inf_count %>% mutate(model_group = factor(x = model_group,
                                                    levels = c("1","2","3")))

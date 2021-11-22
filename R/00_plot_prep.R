@@ -4,7 +4,7 @@ source(file = "R/02C_Farm_info.R")
 
 library(tidyverse)
 
-FarmID = "O2"
+FarmID = "C2"
 nruns = 10
 
 
@@ -13,6 +13,7 @@ load(paste0("results/IBM_",FarmID,".Rdata"))
 load(paste0("results/ODE_",FarmID,".Rdata"))
 
 time <- as.integer(as.Date("2017-12-31")-Farm_var(FarmID)[[1]])
+First_sample <- Farm_var(FarmID)[[1]]
 visit_days_n <- Farm_var(FarmID)[[5]]
 
 

@@ -25,7 +25,7 @@ cow_pop_init <- function(tibble){
                                    1,
                                  Group ==  3 & Age < 3*year & cycle_day > month10 ~ 0,
                                  TRUE ~ Lactation),
-           n_calfs = case_when(Group == 3 & Age < 3*year ~ 1,
+           n_calf = case_when(Group == 3 & Age < 3*year ~ 1,
                                Group == 3 & (Age >= 3*year & Age <= 4*year) ~ 2,
                                TRUE ~ 0),
            Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.6),#Milking cows 
@@ -39,14 +39,14 @@ cow_pop_init <- function(tibble){
 }
 
 # Function to move cows through groups, lactation days and grazing 
-cow_dynamics <- function(tibble, sla_prop){
+cow_dynamics <- function(tibble, sla_prob){
   tibble <- tibble %>% mutate(Age = date - DOB,
                   Group = case_when(Age > month10 & Age < 2*year ~ 2,
                                     Age == 2*year ~ 3,
                                     TRUE ~ as.numeric(Group)),
-                  n_calfs = case_when(Age == 2*year ~ 1,
-                                      cycle_day == year ~ n_calfs + 1,
-                                      TRUE ~ n_calfs),
+                  n_calf = case_when(Age == 2*year ~ 1,
+                                      cycle_day == year ~ n_calf + 1,
+                                      TRUE ~ n_calf),
                   cycle_day = case_when(cycle_day == year ~ 1,
                                         Group == 3 & is.na(cycle_day) ~ 1,
                                         cycle_day > 0 ~ cycle_day + 1,
@@ -65,7 +65,7 @@ cow_dynamics <- function(tibble, sla_prop){
                                     Grazing*0.05))
   #Slaughter
   tibble <- tibble %>% mutate(slaughter = 
-                            case_when(cycle_day == month10 ~ as.numeric(rbinom(1,1,sla_prop)),
+                            case_when(cycle_day == month10 ~ as.numeric(rbinom(1,1,sla_prob)),
                                       TRUE ~ 0))
   tibble <- tibble %>% 
     filter(!(slaughter == 1))
