@@ -89,7 +89,7 @@ Farm <- tibble(CowID = 1:nCows,
                E_period = 0,
                I_period = 0,
                sick_period = 0,
-               n_calfs = 0,
+               n_calf = 0,
                cycle_day = 0,
                Grazing = 0,
                Age = as.numeric(First_sample-DOB))
@@ -137,7 +137,7 @@ Graz_group3[1] <- Farm %>% filter(Group == 3) %>%
   select(Grazing)
 
 prob_time[1] <- Farm %>% 
-  select(E_prop)
+  select(E_prob)
 
 Pop[1] <- nCows
 
@@ -148,7 +148,7 @@ starttime <- Sys.time()
 
 for(k in 2:time){
   
-  # # The E_prop is something that should be calculated and therefore it is just the grazing
+  # # The E_prob is something that should be calculated and therefore it is just the grazing
   # #factor right now. 
   
   #FARM tibble
@@ -166,7 +166,7 @@ for(k in 2:time){
   date <- date + 1
   #Slaughter
   Farm <- Farm %>% 
-    filter(!(n_calfs >= 3 | date >= DOB + round(runif(1,3.75*year,6*year))))
+    filter(!(n_calf >= 3 | date >= DOB + round(runif(1,3.75*year,6*year))))
   
   # Count the number of cows who will have a calf
   Births[k] <- Farm %>% filter(Age == 2*year | cycle_day == year) %>% nrow()
@@ -189,7 +189,7 @@ for(k in 2:time){
   
   # Add calf to the population
   if(Births[k] > 0){
-    new_calfs <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
+    new_calf <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
                         DOB = date,
                         Group = 1,
                         Lactation = NA,
@@ -197,17 +197,17 @@ for(k in 2:time){
                         E_period = 0,
                         I_period = 0,
                         sick_period = 0,
-                        n_calfs = 0,
+                        n_calf = 0,
                         cycle_day = NA,
                         Grazing = runif(Births[k],0,0.1))
     
-    Farm <- bind_rows(Farm,new_calfs)
+    Farm <- bind_rows(Farm,new_calf)
   }
   
   
   Farm <- Farm %>%  
-    mutate(E_prop = 1-exp(-Grazing*(M[k-1]/M_scaling)),
-           Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)),
+    mutate(E_prob = 1-exp(-Grazing*(M[k-1]/M_scaling)),
+           Exposed = case_when(State == 1 ~ rbinom(1,1,E_prob)),
            State = case_when(State == 2 & E_period == 0 ~ 3,
                              Exposed == 1 & State == 1 ~ 2,
                              TRUE ~ State),
@@ -299,7 +299,7 @@ for(k in 2:time){
     select(Grazing)
   
   prob_time[k] <- Farm  %>% 
-    select(E_prop)
+    select(E_prob)
   
   }
 
@@ -311,11 +311,11 @@ endtime - starttime
 Results <- list(S_Cow,E_Cow,I_Cow,Egg_new)
 
 #Grazing index data prep
-#Calfs
-Graz_calfs <- tibble("day" = 1:time,
+#calf
+Graz_calf <- tibble("day" = 1:time,
                     "index" = Graz_calf) 
-Graz_calfs <- Graz_calfs  %>% unnest_longer("index")
-mean_graz_calf <- Graz_calfs %>% group_by(day) %>% summarise(mean(index))
+Graz_calf <- Graz_calf  %>% unnest_longer("index")
+mean_graz_calf <- Graz_calf %>% group_by(day) %>% summarise(mean(index))
 Graz_calf <- full_join(Graz_calf, mean_graz_calf, by = "x")
 
 #Heifers
@@ -334,8 +334,8 @@ prob_time_E <- tibble("day" = 1:time,
 prob_time_E <- prob_time_E  %>% unnest_longer("E_prob")
 
 # Plots -------------------------------------------------------------------
-#Calfs Grazing index over time
-ggplot(data = Graz_calfs, aes(x = day,
+#calf Grazing index over time
+ggplot(data = Graz_calf, aes(x = day,
                           y = index,
                           col = "calf")) +
   geom_point() + 
@@ -382,8 +382,8 @@ prob_time_E %>% ggplot(aes(x = day,
 
 #Base R Plots
 # par(mar = c(2.5,2.2,1.3,0.5), family = "serif", font.lab = 2,mgp = c(1.4,0.4,0),mfrow=c(3,1))
-# #Calfs Grazing index over time 
-# plot(unlist(Graz_calf), ylab = "Calfs grazingindex", xlab = "", col=2)
+# #calf Grazing index over time 
+# plot(unlist(Graz_calf), ylab = "calf grazingindex", xlab = "", col=2)
 # 
 # #Heifers Grazing index over time
 # plot(unlist(Graz_heifer), ylab = "Heifers grazingindex", xlab = "", col=3 )

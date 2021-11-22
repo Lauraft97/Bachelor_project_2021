@@ -103,7 +103,7 @@ Farm <- tibble(CowID = 1:nCows,
                E_period = 0,
                I_period = 0,
                sick_period = 0,
-               n_calfs = 0,
+               n_calf = 0,
                cycle_day = 0,
                Grazing = 0,
                Age = as.numeric(First_sample-DOB))
@@ -151,7 +151,7 @@ Visit_days <- Farm_info[[5]]
 starttime <- Sys.time()
 
   for(k in 2:time){
-    # # The E_prop is something that should be calculated and therefore it is just the grazing
+    # # The E_prob is something that should be calculated and therefore it is just the grazing
     # #factor right now. 
     
     #FARM tibble
@@ -170,7 +170,7 @@ starttime <- Sys.time()
     
     #Slaughter
     Farm <- Farm %>% 
-      filter(!(n_calfs >= 3 | date >= DOB + round(runif(1,3.75*year,6*year))))
+      filter(!(n_calf >= 3 | date >= DOB + round(runif(1,3.75*year,6*year))))
     
     # Count the number of cows who will have a calf
     Births[k] <- Farm %>% filter(Age == 2*year | cycle_day == year) %>% nrow()
@@ -193,7 +193,7 @@ starttime <- Sys.time()
     
     # Add calf to the population
     if(Births[k] > 0){
-      new_calfs <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
+      new_calf <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
                           DOB = date,
                           Group = 1,
                           Lactation = NA,
@@ -201,17 +201,17 @@ starttime <- Sys.time()
                           E_period = 0,
                           I_period = 0,
                           sick_period = 0,
-                          n_calfs = 0,
+                          n_calf = 0,
                           cycle_day = NA,
                           Grazing = runif(Births[k],0,0.1))
       
-      Farm <- bind_rows(Farm,new_calfs)
+      Farm <- bind_rows(Farm,new_calf)
     }
     
     
     Farm <- Farm %>%  
-      mutate(E_prop = 1-exp(-Grazing*(M[k-1]/M_scaling)),
-             Exposed = case_when(State == 1 ~ rbinom(1,1,E_prop)),
+      mutate(E_prob = 1-exp(-Grazing*(M[k-1]/M_scaling)),
+             Exposed = case_when(State == 1 ~ rbinom(1,1,E_prob)),
              State = case_when(State == 2 & E_period == 0 ~ 3,
                                Exposed == 1 & State == 1 ~ 2,
                                TRUE ~ State),
