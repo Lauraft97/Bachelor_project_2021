@@ -1,7 +1,9 @@
 
 load("data/10_model_weather.RData")
 
-run_simulation <- function(FarmID,nruns){
+run_sensitivity <- function(FarmID,nruns){
+  
+  FarmID = "C1"
   
   # Import functions --------------------------------------------------------
   source(file ="R/99_functions.R")
@@ -31,28 +33,17 @@ run_simulation <- function(FarmID,nruns){
   First_DOB <- First_sample - 4*year
   ID_no <- nCows
   M_scaling <- 10^-7
-  egg_mu_scaled <- 2.773*(12000/5)
   egg_theta_distr <- 0.287
   
   
   # List to save results -----------------------------------------------
-  sim_validation <- list()
-  sim_IBM <- list()
-  sim_ODE <- list()
-  result <- list()
-  
+sensitivity <- list()
 
+  
+  
   # ODE_rate_function -------------------------------------------------------
   
   Rates <- function(date){
-    
-    # Defining the maximum rates 
-    lambda_ES_max <- 0.0000005 #Transmission rate egg to snail
-    mu_Egg_max <- 0.65 # Death rate eggs (become non-infectious)
-    delta_snail_max <- 1.5 #Daily snail population "scaling factor"
-    gamma_S_max <- 2 #Excretion of metacercarria from snail
-    mu_S_max <- 0.05 #Death rate of infected snails / recovery rate
-    mu_M_max <- 0.15 # Death rate of metacercaria
     
     
     #Filtering data for given day  
@@ -84,7 +75,7 @@ run_simulation <- function(FarmID,nruns){
     }
     
     delta_snail <- pexp(q = DD,rate = rate_exp)*delta_snail_max
-    Rates <- c(lambda_ES,mu_Egg,delta_snail,mu_M)
+    Rates <- c(lambda_ES,mu_Egg,delta_snail,mu_M, mu_S)
     return(Rates) 
   }
   
@@ -95,10 +86,10 @@ run_simulation <- function(FarmID,nruns){
       mutate(State = if_else(CowID %in% E0_cows,
                              3-rbinom(1,1,0.5),
                              1),
-             E_period = case_when(State == 2 ~ conv_neg(round(rnorm(1, mean = 7*7, sd = 7))),
+             E_period = case_when(State == 2 ~ conv_neg(round(rnorm(1, mean = 5*7, sd = 7))),
                                   TRUE ~ 0),
              sick_period = case_when(State == 2 ~ sick_period + 1,
-                                     State == 3 ~ conv_neg(round(rnorm(1, mean = 7*7, sd = 7))),
+                                     State == 3 ~ conv_neg(round(rnorm(1, mean = 5*7, sd = 7))),
                                      TRUE ~ 0),
              sick_period = if_else(sick_period >= Age,
                                    Age,
@@ -116,8 +107,8 @@ run_simulation <- function(FarmID,nruns){
                                    Group ==  3 & Age < 3*year & cycle_day > month10 ~ 0,
                                    TRUE ~ Lactation),
              n_calf = case_when(Group == 3 & Age < 3*year ~ 1,
-                                 Group == 3 & (Age >= 3*year & Age <= 4*year) ~ 2,
-                                 TRUE ~ 0),
+                                Group == 3 & (Age >= 3*year & Age <= 4*year) ~ 2,
+                                TRUE ~ 0),
              Grazing = case_when(Lactation == 1 ~ runif(1,0.1,0.6),#Milking cows 
                                  #calf under 5 months do note graze
                                  Age <= month5 ~ runif(1,0,0.1), 
@@ -135,8 +126,8 @@ run_simulation <- function(FarmID,nruns){
                                                   Age == 2*year ~ 3,
                                                   TRUE ~ as.numeric(Group)),
                                 n_calf = case_when(Age == 2*year ~ 1,
-                                                    cycle_day == year ~ n_calf + 1,
-                                                    TRUE ~ n_calf),
+                                                   cycle_day == year ~ n_calf + 1,
+                                                   TRUE ~ n_calf),
                                 cycle_day = case_when(cycle_day == year ~ 1,
                                                       Group == 3 & is.na(cycle_day) ~ 1,
                                                       cycle_day > 0 ~ cycle_day + 1,
@@ -164,10 +155,47 @@ run_simulation <- function(FarmID,nruns){
   }
   
   
+  #Placeholders for data storage
+  lambda_ES_sa <- rep(0,10)#Transmission rate egg to snail
+  mu_Egg_sa <- c() # Death rate eggs (become non-infectious)
+  delta_snail_sa <- c() #Daily snail population "scaling factor"
+  gamma_S_sa <- c() #Excretion of metacercarria from snail
+  mu_S_sa <- c() #Death rate of infected snails / recovery rate
+  mu_M_sa <- c() # Death rate of metacercaria
+  sla_prob <- c()
+  egg_mu_scaled <- c()
+  Snail_pop0 <- c()
+  End_infected <- c()
+  
   
   
   
   for(sim_n in c(1:nruns)){
+    
+    # Parameters to follow in sensitivity analysis
+    
+    # Defining the maximum rates 
+    lambda_ES_sa[nruns] <- runif(n = 1,0.8*0.0000005,1.2*0.0000005) #Transmission rate egg to snail
+    mu_Egg_sa[nruns] <- runif(1,0.8*0.65,1.2*0.65) # Death rate eggs (become non-infectious)
+    delta_snail_sa[nruns] <- runif(1,0.8*1.5,1.2*1.5) #Daily snail population "scaling factor"
+    gamma_S_sa[nruns] <- runif(1,0.8*2,1.2*2) #Excretion of metacercarria from snail
+    mu_S_sa[nruns] <- runif(1,0.8*0.07,1.2*0.07) #Death rate of infected snails / recovery rate
+    mu_M_sa[nruns] <- runif(1,0.8*0.15,1.2*0.15) # Death rate of metacercaria
+    
+    
+    lambda_ES_max <- lambda_ES_sa[nruns] #Transmission rate egg to snail
+    mu_Egg_max <- mu_Egg_sa[nruns] # Death rate eggs (become non-infectious)
+    delta_snail_max <- delta_snail_sa[nruns] #Daily snail population "scaling factor"
+    gamma_S_max <- gamma_S_sa[nruns] #Excretion of metacercarria from snail
+    mu_S_max <-mu_S_max[nruns] #Death rate of infected snails / recovery rate
+    mu_M_max <- mu_M_sa[nruns] # Death rate of metacercaria
+    
+    
+    
+    sla_prob[nruns] <- runif(1,0.8*0.5,1.2*0.5)
+    egg_mu_scaled[nruns] <- 2.773*(runif(1,9000,15000)/5)
+    Snail_pop0[nruns] <- runif(1,0.8*10^4,1.2*10^4)
+
     
     # Reset date 
     date <- First_sample
@@ -213,11 +241,9 @@ run_simulation <- function(FarmID,nruns){
     mu_Egg <- Rates(date)[2]
     lambda_ES <- Rates(date)[1]
     mu_M <- Rates(date)[4]
-    Snail_pop0 <- 10^4
     alpha <- 2/(6*7)
     gamma_S <- 2
-    mu_S <- 0.05
-    sla_prob <- 0.5
+    mu_S <- Rates(date)[5]
     
     
     Eggs[1] <- 0
@@ -225,7 +251,7 @@ run_simulation <- function(FarmID,nruns){
     E2_S[1] <- 0
     I_S[1] <- 0
     M[1] <- 100
-    Snail_pop[1] <- Rates(date)[3]*Snail_pop0
+    Snail_pop[1] <- Rates(date)[3]*Snail_pop0[nruns]
     S_S[1] <- Snail_pop[1] - (E1_S[1]+E2_S[1]+I_S[1])
     
     
@@ -253,8 +279,8 @@ run_simulation <- function(FarmID,nruns){
     
     # Random choose E0 cows
     .GlobalEnv$E0_cows <- sample(1:nCows,
-                      nE0,
-                      replace = F)
+                                 nE0,
+                                 replace = F)
     
     
     # Randomly exposed nE0 number of cows (change state to 2) and generating period to be in E
@@ -294,7 +320,7 @@ run_simulation <- function(FarmID,nruns){
       date <- date + 1
       
       # Moving through the different groups (cow population dynamics)
-      Farm <- cow_dynamics(Farm,sla_prob)
+      Farm <- cow_dynamics(Farm,sla_prob[nruns])
       
       
       # Count the number of cows who will have a calf
@@ -316,16 +342,16 @@ run_simulation <- function(FarmID,nruns){
       # Add calf to the population
       if(Births[k] > 0){
         new_calf <- tibble(CowID = (ID_no+1-Births[k]):ID_no,
-                            DOB = date,
-                            Group = 1,
-                            Lactation = NA,
-                            State = 1,
-                            E_period = 0,
-                            I_period = 0,
-                            sick_period = 0,
-                            n_calf = 0,
-                            cycle_day = NA,
-                            Grazing = runif(Births[k],0,0.1))
+                           DOB = date,
+                           Group = 1,
+                           Lactation = NA,
+                           State = 1,
+                           E_period = 0,
+                           I_period = 0,
+                           sick_period = 0,
+                           n_calf = 0,
+                           cycle_day = NA,
+                           Grazing = runif(Births[k],0,0.1))
         
         Farm <- bind_rows(Farm,new_calf)
       }
@@ -381,11 +407,11 @@ run_simulation <- function(FarmID,nruns){
       
       
       Farm <- Farm %>% mutate(eggs_pr_cow = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled)*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
+                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[nruns])*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
                                                       sick_period > 3*30 & sick_period <= 8*30 
-                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled),
+                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[nruns]),
                                                       sick_period > 8*30 
-                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled)*exp(-(0.05*(sick_period-(8*30)))),
+                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[nruns])*exp(-(0.05*(sick_period-(8*30)))),
                                                       TRUE ~ 0))
       
       Egg_new[k] <- Farm %>% ungroup() %>% 
@@ -399,7 +425,7 @@ run_simulation <- function(FarmID,nruns){
       delta_snail <- Rates(date)[3]
       mu_M <- Rates(date)[4]
       
-      Snail_pop[k] <- delta_snail*Snail_pop0
+      Snail_pop[k] <- delta_snail*Snail_pop0[nruns]
       S_S[k] <- Snail_pop[k] - (E1_S[k-1]+E2_S[k-1]+I_S[k-1])
       
       if(S_S[k] < 0){
@@ -425,22 +451,26 @@ run_simulation <- function(FarmID,nruns){
       
       
       Pop[k] <- Farm %>% nrow()
+      
       print(time-k)
       
     }
     
-    sim_validation[[sim_n]] <- validation %>% slice(-1)
-    sim_IBM[[sim_n]] <- list(S_Cow,E_Cow,I_Cow,Egg_new)
-    sim_ODE[[sim_n]] <- list(Eggs, E1_S, E2_S, I_S, S_S, Snail_pop, M)
+    End_infected[nruns] <- Farm %>% filter(State == 3) %>% nrow()
     
   }
   
-  result <- list(sim_validation, sim_IBM, sim_ODE)
+  result <- cbind(lambda_ES_sa, mu_Egg_sa, delta_snail_sa, 
+                      gamma_S_sa, mu_S_sa, mu_M_sa, sla_prob, 
+                      egg_mu_scaled, Snail_pop0, End_infected)
   
   return(result)
   
 }
 
 
-run_simulation("C1",2)
 
+sensitivity <- run_sensitivity("C1",10)
+
+
+rm(list = ls())
