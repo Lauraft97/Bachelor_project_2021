@@ -1,4 +1,4 @@
-rm(list = ls())
+
 load("data/10_model_weather.RData")
 
 run_simulation <- function(FarmID,nruns){
