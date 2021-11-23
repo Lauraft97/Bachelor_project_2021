@@ -45,7 +45,8 @@ year <- 365
 
 
 # Parameters --------------------------------------------------------------
-time <- as.numeric(as.Date("2017-12-31")-First_sample)
+time <- 250
+  #as.numeric(as.Date("2017-12-31")-First_sample)
 First_DOB <- First_sample - 4*year
 date <- First_sample
 ID_no <- nCows
@@ -61,7 +62,7 @@ mu_M <- Rates(date)[4]
 Snail_pop0 <- 10^4
 alpha <- 2/(6*7)
 gamma_S <- 2
-mu_S <- 0.05
+mu_S <- Rates(date)[5]
 sla_prob <- 0.5
 
 
@@ -273,6 +274,7 @@ for(k in 2:time){
   lambda_ES <- Rates(date)[1]
   delta_snail <- Rates(date)[3]
   mu_M <- Rates(date)[4]
+  mu_S <- Rates(date)[5]
   
   Snail_pop[k] <- delta_snail*Snail_pop0
   S_S[k] <- Snail_pop[k] - (E1_S[k-1]+E2_S[k-1]+I_S[k-1])

@@ -5,7 +5,7 @@ lambda_ES_max <- 0.0000005 #Transmission rate egg to snail
 mu_Egg_max <- 0.65 # Death rate eggs (become non-infectious)
 delta_snail_max <- 1.5 #Daily snail population "scaling factor"
 gamma_S_max <- 2 #Excretion of metacercarria from snail
-mu_S_max <- 0.05 #Death rate of infected snails / recovery rate
+mu_S_max <- 0.1 #Death rate of infected snails / recovery rate
 mu_M_max <- 0.15 # Death rate of metacercaria
 
 
@@ -48,7 +48,7 @@ Rates <- function(date){
 
   
   
-  Rates <- c(lambda_ES,mu_Egg,delta_snail,mu_M)
+  Rates <- c(lambda_ES,mu_Egg,delta_snail,mu_M,mu_S)
   return(Rates) 
   
 }
