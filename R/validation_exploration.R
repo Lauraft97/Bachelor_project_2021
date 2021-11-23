@@ -66,7 +66,7 @@ fluke_infected <- fluke_diag %>%
                                  Cow_Age > 2*year ~ 3))
 
 
-inf_count <- fluke_infected %>% group_by(Farm, Visit, model_group) %>% 
+inf_count <- fluke_infected %>% group_by(Farm, Visit, Group) %>% 
                    summarise(Count = n()) 
 
 inf_count <- inf_count %>% mutate(model_group = factor(x = model_group,
