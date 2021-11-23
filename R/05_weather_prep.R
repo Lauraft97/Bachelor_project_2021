@@ -98,35 +98,26 @@ ggplot(mapping = aes(x = x,
                      y = y)) +
   geom_hline(yintercept = 0, linetype = "dashed", col = "gray60") +
   geom_point(col = color_scheme[1]) +
-  theme_bw(base_size = 8) +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
   labs(title = "Sine function",
        subtitle = "Function to correct for differences between air and ground temperature",
        x = "Time [h]",
        y = "Degrees to add") +
   theme(axis.title.y = element_text(vjust=1))
 
-ggsave(filename = "results/figures/05_sine_function.png",
-       width = 10, 
-       height = 6.5, 
-       units = "cm",
-       dpi = 150)  
+ggsave(filename = "results/figures/05_sine_function.png")  
 
 
 
 # Plot of temperature -----------------------------------------------------
 First_sample <- as.Date("2015-04-27")
-# daily_weather %>% filter(Date >= First_sample & Date <= as.Date("2017-12-31")) %>% 
-#   ggplot(mapping = aes(x = Date,
-#                        y = mean_ground_temp,
-#                        col = location)) +
-#   geom_line() +
-#   geom_hline(yintercept = 10)+
-#   geom_hline(yintercept = 25)
 
 daily_weather %>% filter(Date >= First_sample & Date <= as.Date("2017-12-31")) %>% 
   ggplot(mapping = aes(x = Date,
                        y = mean_ground_temp_ten)) +
-  theme_bw(base_size = 8)+
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright")+
   geom_line()+
   labs(y = "Corrected ground temperature")+
   facet_wrap(~location, nrow = 2)
@@ -159,7 +150,8 @@ p_toender <- rain %>% ggplot(aes(x = 1:length(rain_frederikssund))) +
   labs(x = "days",
        y = "rain [mm]",
        title = "Tønder") +
-  theme_bw() +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
   theme(legend.position = "none")+ 
   coord_cartesian(ylim=c(0, 25))
 
@@ -169,17 +161,14 @@ p_frederikssund <- rain %>% ggplot(aes(x = 1:length(rain_frederikssund))) +
   labs(x = "days",
        y = "rain [mm]",
        title = "Frederikssund") +
-  theme_bw(base_size = 10) +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
   theme(legend.position = "none") + 
   coord_cartesian(ylim=c(0, 25))
 
 p_toender / p_frederikssund
 
 ggsave(filename = "results/figures/05_rain.png")
-
-
-# rain %>% filter(rain_frederikssund <= 1) %>% 
-#   summarise(n = n())
 
 
 

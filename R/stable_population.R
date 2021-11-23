@@ -8,6 +8,10 @@ set.seed(744)
 library(tidyverse)
 library(lubridate)
 library(statmod)
+library(extrafont)
+loadfonts(quiet = T)
+
+color_scheme <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
 
 
 # Import functions --------------------------------------------------------
@@ -36,7 +40,7 @@ nCows <- Farm_info[[4]]
 nE0 <- floor(Farm_info[[7]]*nCows/nCohort) 
 ID_no <- nCows
 
-sla_prob_vec <- c(0.1,0.3,0.5,0.7,0.9)
+sla_prob_vec <- seq(0.1,0.9,0.1)
 
 #Placeholder to fill out
 Pop <- matrix(NA, ncol = time, nrow = length(sla_prob_vec))
@@ -123,19 +127,53 @@ for(i in 1:length(sla_prob_vec)){
   
 }
 
+
+# Plotting ----------------------------------------------------------------
+
+save(Pop,file = "results/Pop_0.1_0.9_full.RData")
+#Loading data
+#load("results/Pop_0.1_0.9.RData")
+#load("results/Pop_0.4_0.6.RData")
+
+# Spanding from 0.1 to 0.9
 ggplot(mapping = aes(x = 1:time)) +
+  scale_color_manual(values=c(color_scheme[9], 
+                              color_scheme[2], 
+                              color_scheme[5],
+                              color_scheme[4],
+                              color_scheme[6],
+                              color_scheme[7],
+                              color_scheme[8],
+                              color_scheme[10],
+                              color_scheme[12]),
+                     name = "Slaughter \n probability") + 
   geom_line(aes(y = Pop[1,],
                 col = "0.1")) +
   geom_line(aes(y = Pop[2,],
-                col = "0.3")) +
+                col = "0.2")) +
   geom_line(aes(y = Pop[3,],
-                col = "0.5")) +
+                col = "0.3")) +
   geom_line(aes(y = Pop[4,],
-                col = "0.7")) +
+                col = "0.4")) +
   geom_line(aes(y = Pop[5,],
-                col = "0.9"))   
+                col = "0.5")) +
+  geom_line(aes(y = Pop[6,],
+                col = "0.6")) +
+  geom_line(aes(y = Pop[7,],
+                col = "0.7")) +
+  geom_line(aes(y = Pop[8,],
+                col = "0.8")) +
+  geom_line(aes(y = Pop[9,],
+                col = "0.9")) +
+  geom_hline(yintercept = 312,linetype = "dashed", col = "gray60", size = 0.5) +
+  labs(title = "Cattle population",
+       x = "Days",
+       y = "Cattle [#]")+
+  theme_bw(base_family = "Lucida Bright",
+           base_size = 12)
+
+ggsave(filename = "results/figures/stable_pop.png")
   
-save(Pop,file = "results/Pop_0.1_0.9.RData")
 
 
 
