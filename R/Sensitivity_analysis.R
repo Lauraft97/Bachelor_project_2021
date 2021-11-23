@@ -179,7 +179,7 @@ sensitivity <- list()
     mu_Egg_sa[nruns] <- runif(1,0.8*0.65,1.2*0.65) # Death rate eggs (become non-infectious)
     delta_snail_sa[nruns] <- runif(1,0.8*1.5,1.2*1.5) #Daily snail population "scaling factor"
     gamma_S_sa[nruns] <- runif(1,0.8*2,1.2*2) #Excretion of metacercarria from snail
-    mu_S_sa[nruns] <- runif(1,0.8*0.07,1.2*0.07) #Death rate of infected snails / recovery rate
+    mu_S_sa[nruns] <- runif(1,0.8*0.15,1.2*0.15) #Death rate of infected snails / recovery rate
     mu_M_sa[nruns] <- runif(1,0.8*0.15,1.2*0.15) # Death rate of metacercaria
     
     
