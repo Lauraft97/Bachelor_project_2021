@@ -72,6 +72,9 @@ plot_SEI <- function(FarmID,nruns){
     geom_vline(xintercept = last_visit,
                color = "gray60",
                linetype = "dashed") +
+    scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+                                                 max = as.Date("2017-12-31")),
+                 date_labels = "%b-%y") + 
     theme(legend.position = "none")
   
   
@@ -91,6 +94,9 @@ plot_SEI <- function(FarmID,nruns){
     geom_vline(xintercept = last_visit,
                color = "gray60",
                linetype = "dashed") +
+    scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+                                                 max = as.Date("2017-12-31")),
+                 date_labels = "%b-%y") + 
     theme(axis.text.x=element_blank())
   
   
@@ -110,6 +116,9 @@ plot_SEI <- function(FarmID,nruns){
     geom_vline(xintercept = last_visit,
                color = "gray60",
                linetype = "dashed") +
+    scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+                                                 max = as.Date("2017-12-31")),
+                 date_labels = "%b-%y") + 
     theme(legend.position = "none")
   
   p <- S/E/I + plot_annotation(title = paste("Farm", FarmID, sep = " ")) & 

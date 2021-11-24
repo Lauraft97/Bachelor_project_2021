@@ -156,11 +156,11 @@ sensitivity <- list()
   
   
   #Placeholders for data storage
-  lambda_ES_sa <- rep(0,10)#Transmission rate egg to snail
+  lambda_ES_sa <- c()#Transmission rate egg to snail
   mu_Egg_sa <- c() # Death rate eggs (become non-infectious)
   delta_snail_sa <- c() #Daily snail population "scaling factor"
   gamma_S_sa <- c() #Excretion of metacercarria from snail
-  mu_S_sa <- rep(0,10) #Death rate of infected snails / recovery rate
+  mu_S_sa <- c() #Death rate of infected snails / recovery rate
   mu_M_sa <- c() # Death rate of metacercaria
   sla_prob <- c()
   egg_mu_scaled <- c()
@@ -471,7 +471,11 @@ sensitivity <- list()
 }
 
 
+start <- Sys.time()
+sensitivity <- run_sensitivity("O1",1)
+slut <- Sys.time()
+slut-start
 
-sensitivity <- run_sensitivity("O1",10)
+save(sensitivity, file =  "results/sensitivity_LFT.RData")
 
 
