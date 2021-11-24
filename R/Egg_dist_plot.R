@@ -12,7 +12,8 @@ a %>% ggplot(aes(x = eggs))+
   geom_histogram(aes(y = ..density..), alpha = 0.5,
                  position ="identity",
                  binwidth = 3000) +
-  geom_density()
+  geom_density() #+ 
+  #xlim(0,60000)
 
 
 a %>% ggplot(aes(x = eggs))+
