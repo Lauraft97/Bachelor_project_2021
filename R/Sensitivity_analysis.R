@@ -1,10 +1,10 @@
+rm(list = ls())
+
 
 load("data/10_model_weather.RData")
 
 run_sensitivity <- function(FarmID,nruns){
-  
-  FarmID = "C1"
-  
+
   # Import functions --------------------------------------------------------
   source(file ="R/99_functions.R")
   source(file = "R/02A_Population_dynamics.R")
@@ -156,7 +156,7 @@ sensitivity <- list()
   
   
   #Placeholders for data storage
-  lambda_ES_sa <- rep(0,10)#Transmission rate egg to snail
+  lambda_ES_sa <- c()#Transmission rate egg to snail
   mu_Egg_sa <- c() # Death rate eggs (become non-infectious)
   delta_snail_sa <- c() #Daily snail population "scaling factor"
   gamma_S_sa <- c() #Excretion of metacercarria from snail
@@ -165,6 +165,7 @@ sensitivity <- list()
   sla_prob <- c()
   egg_mu_scaled <- c()
   Snail_pop0 <- c()
+  
   End_infected <- c()
   
   
@@ -175,26 +176,26 @@ sensitivity <- list()
     # Parameters to follow in sensitivity analysis
     
     # Defining the maximum rates 
-    lambda_ES_sa[nruns] <- runif(n = 1,0.8*0.0000005,1.2*0.0000005) #Transmission rate egg to snail
-    mu_Egg_sa[nruns] <- runif(1,0.8*0.65,1.2*0.65) # Death rate eggs (become non-infectious)
-    delta_snail_sa[nruns] <- runif(1,0.8*1.5,1.2*1.5) #Daily snail population "scaling factor"
-    gamma_S_sa[nruns] <- runif(1,0.8*2,1.2*2) #Excretion of metacercarria from snail
-    mu_S_sa[nruns] <- runif(1,0.8*0.15,1.2*0.15) #Death rate of infected snails / recovery rate
-    mu_M_sa[nruns] <- runif(1,0.8*0.15,1.2*0.15) # Death rate of metacercaria
+    lambda_ES_sa[sim_n] <- runif(n = 1,0.8*0.0000005,1.2*0.0000005) #Transmission rate egg to snail
+    mu_Egg_sa[sim_n] <- runif(1,0.8*0.65,1.2*0.65) # Death rate eggs (become non-infectious)
+    delta_snail_sa[sim_n] <- runif(1,0.8*1.5,1.2*1.5) #Daily snail population "scaling factor"
+    gamma_S_sa[sim_n] <- runif(1,0.8*2,1.2*2) #Excretion of metacercarria from snail
+    mu_S_sa[sim_n] <- runif(1,0.8*0.1,1.2*0.1) #Death rate of infected snails / recovery rate
+    mu_M_sa[sim_n] <- runif(1,0.8*0.15,1.2*0.15) # Death rate of metacercaria
     
     
-    lambda_ES_max <- lambda_ES_sa[nruns] #Transmission rate egg to snail
-    mu_Egg_max <- mu_Egg_sa[nruns] # Death rate eggs (become non-infectious)
-    delta_snail_max <- delta_snail_sa[nruns] #Daily snail population "scaling factor"
-    gamma_S_max <- gamma_S_sa[nruns] #Excretion of metacercarria from snail
-    mu_S_max <-mu_S_max[nruns] #Death rate of infected snails / recovery rate
-    mu_M_max <- mu_M_sa[nruns] # Death rate of metacercaria
+    lambda_ES_max <- lambda_ES_sa[sim_n] #Transmission rate egg to snail
+    mu_Egg_max <- mu_Egg_sa[sim_n] # Death rate eggs (become non-infectious)
+    delta_snail_max <- delta_snail_sa[sim_n] #Daily snail population "scaling factor"
+    gamma_S_max <- gamma_S_sa[sim_n] #Excretion of metacercarria from snail
+    mu_S_max <-mu_S_sa[sim_n] #Death rate of infected snails / recovery rate
+    mu_M_max <- mu_M_sa[sim_n] # Death rate of metacercaria
     
     
     
-    sla_prob[nruns] <- runif(1,0.8*0.5,1.2*0.5)
-    egg_mu_scaled[nruns] <- 2.773*(runif(1,9000,15000)/5)
-    Snail_pop0[nruns] <- runif(1,0.8*10^4,1.2*10^4)
+    sla_prob[sim_n] <- runif(1,0.8*0.5,1.2*0.5)
+    egg_mu_scaled[sim_n] <- 2.773*(runif(1,9000,15000)/5)
+    Snail_pop0[sim_n] <- runif(1,0.8*10^4,1.2*10^4)
 
     
     # Reset date 
@@ -251,7 +252,7 @@ sensitivity <- list()
     E2_S[1] <- 0
     I_S[1] <- 0
     M[1] <- 100
-    Snail_pop[1] <- Rates(date)[3]*Snail_pop0[nruns]
+    Snail_pop[1] <- Rates(date)[3]*Snail_pop0[sim_n]
     S_S[1] <- Snail_pop[1] - (E1_S[1]+E2_S[1]+I_S[1])
     
     
@@ -278,7 +279,7 @@ sensitivity <- list()
     Farm$Group <- factor(Farm$Group, levels=c(1:3))
     
     # Random choose E0 cows
-    .GlobalEnv$E0_cows <- sample(1:nCows,
+    E0_cows <- sample(1:nCows,
                                  nE0,
                                  replace = F)
     
@@ -320,8 +321,7 @@ sensitivity <- list()
       date <- date + 1
       
       # Moving through the different groups (cow population dynamics)
-      Farm <- cow_dynamics(Farm,sla_prob[nruns])
-      
+      Farm <- cow_dynamics(Farm,sla_prob[sim_n])
       
       # Count the number of cows who will have a calf
       Births[k] <- Farm %>% filter(Age == 2*year | cycle_day == year) %>% nrow()
@@ -407,11 +407,11 @@ sensitivity <- list()
       
       
       Farm <- Farm %>% mutate(eggs_pr_cow = case_when(sick_period > 2*30 & sick_period <= 3*30 
-                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[nruns])*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
+                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[sim_n])*((1/(90-60))*sick_period-2),# Linear increasing from 0 to 1
                                                       sick_period > 3*30 & sick_period <= 8*30 
-                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[nruns]),
+                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[sim_n]),
                                                       sick_period > 8*30 
-                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[nruns])*exp(-(0.05*(sick_period-(8*30)))),
+                                                      ~ rnbinom(1,egg_theta_distr,mu = egg_mu_scaled[sim_n])*exp(-(0.05*(sick_period-(8*30)))),
                                                       TRUE ~ 0))
       
       Egg_new[k] <- Farm %>% ungroup() %>% 
@@ -424,12 +424,13 @@ sensitivity <- list()
       lambda_ES <- Rates(date)[1]
       delta_snail <- Rates(date)[3]
       mu_M <- Rates(date)[4]
+      mu_S <- Rates(date)[5]
       
-      Snail_pop[k] <- delta_snail*Snail_pop0[nruns]
+      Snail_pop[k] <- delta_snail*Snail_pop0[sim_n]
       S_S[k] <- Snail_pop[k] - (E1_S[k-1]+E2_S[k-1]+I_S[k-1])
       
       if(S_S[k] < 0){
-        S_S[k] = 0 
+        S_S[k] = 0
       }
       
       Eggs[k] <- Eggs[k-1] + Egg_new[k]+(-mu_Egg * Eggs[k-1] - lambda_ES * Eggs[k-1] * S_S[k])
@@ -456,12 +457,13 @@ sensitivity <- list()
       
     }
     
-    End_infected[nruns] <- Farm %>% filter(State == 3) %>% nrow()
+    End_infected[sim_n] <- Farm %>% filter(State == 3) %>% nrow()
+    print(paste0("Simulation ",sim_n))
     
   }
   
-  result <- cbind(lambda_ES_sa, mu_Egg_sa, delta_snail_sa, 
-                      gamma_S_sa, mu_S_sa, mu_M_sa, sla_prob, 
+  result <- cbind(lambda_ES_sa, mu_Egg_sa, delta_snail_sa,
+                      gamma_S_sa, mu_S_sa, mu_M_sa, sla_prob,
                       egg_mu_scaled, Snail_pop0, End_infected)
   
   return(result)
@@ -469,8 +471,11 @@ sensitivity <- list()
 }
 
 
+start <- Sys.time()
+sensitivity <- run_sensitivity("O1",1)
+slut <- Sys.time()
+slut-start
 
-sensitivity <- run_sensitivity("C1",10)
+save(sensitivity, file =  "results/sensitivity_LFT.RData")
 
 
-rm(list = ls())
