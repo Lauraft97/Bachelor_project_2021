@@ -250,6 +250,7 @@ plot_validation <- function(FarmID){
   source(file ="R/99_functions.R")
   source(file = "R/02C_Farm_info.R")
   
+  FarmID = "O2"
   
   # Preparing farm data -------------------------------------------------
   fluke_data <- read_tsv(file = "data/01_fluke_data_clean.tsv")
@@ -266,7 +267,7 @@ plot_validation <- function(FarmID){
   
   # Simulation data ---------------------------------------
   
-  load(paste0("results/validation_",FarmID,".Rdata"))
+  load(paste0("results/validation_",FarmID,"_low.Rdata"))
   
   visit_days_n <- Farm_var(FarmID)[[5]]
   
@@ -345,6 +346,8 @@ plot_validation <- function(FarmID){
   
 }  
 
+
+plot_ODE("O1","Infected")
 
 
 

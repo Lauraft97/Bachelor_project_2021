@@ -54,7 +54,7 @@ run_simulation <- function(FarmID,nruns){
     mu_Egg_max <- 0.65 # Death rate eggs (become non-infectious)
     delta_snail_max <- 1.5 #Daily snail population "scaling factor"
     gamma_S_max <- 2 #Excretion of metacercarria from snail
-    mu_S_max <- 0.15 #Death rate of infected snails / recovery rate
+    mu_S_max <- 0.1 #Death rate of infected snails / recovery rate
     mu_M_max <- 0.15 # Death rate of metacercaria
     
     
@@ -402,6 +402,7 @@ run_simulation <- function(FarmID,nruns){
       lambda_ES <- Rates(date)[1]
       delta_snail <- Rates(date)[3]
       mu_M <- Rates(date)[4]
+      mu_S <- Rates(date)[5]
       
       Snail_pop[k] <- delta_snail*Snail_pop0
       S_S[k] <- Snail_pop[k] - (E1_S[k-1]+E2_S[k-1]+I_S[k-1])
@@ -437,6 +438,8 @@ run_simulation <- function(FarmID,nruns){
     sim_IBM[[sim_n]] <- list(S_Cow,E_Cow,I_Cow,Egg_new)
     sim_ODE[[sim_n]] <- list(Eggs, E1_S, E2_S, I_S, S_S, Snail_pop,M)
     
+    print(sim_n)
+    
   }
   
   result <- list(sim_validation, sim_IBM, sim_ODE)
@@ -446,5 +449,15 @@ run_simulation <- function(FarmID,nruns){
 }
 
 
-result <- run_simulation("C1",1)
+result <- run_simulation("O1",10)
+
+sim_validation <- result[[1]]
+sim_ODE <- result[[3]]
+sim_IBM <- result[[2]]
+
+
+
+save(sim_validation,file = "results/validation_O1_01.RData")
+save(sim_IBM,file = "results/IBM_O1_01.RData")
+save(sim_ODE,file = "results/ODE_O1_01.RData")
 
