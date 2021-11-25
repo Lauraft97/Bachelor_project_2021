@@ -247,7 +247,6 @@ plot_SEI_total <- function(FarmID,nruns){
 
 
 # Plot validation ---------------------------------------------------------
-
 plot_validation <- function(FarmID){
   
   library(tidyverse)
