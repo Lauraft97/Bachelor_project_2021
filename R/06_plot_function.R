@@ -63,19 +63,17 @@ plot_SEI <- function(FarmID,nruns){
                                 color_scheme[7], 
                                 color_scheme[3]),
                        labels = c("Calf", "Heifer", "Cow")) +
-    theme_bw(base_size = 12,
+    theme_bw(base_size = 11,
              base_family = "Lucida Bright") +
     labs(x = "",
          y = "Cattle [#]",
          title = "Susceptible") +
-    theme(axis.text.x=element_blank())+ 
-    geom_vline(xintercept = last_visit,
-               color = "gray60",
-               linetype = "dashed") +
-    scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+    theme(axis.text.x=element_blank(),
+          legend.position = "none",
+          plot.margin=unit(c(0,0,0,0), "cm"))+ 
+    scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
                                                  max = as.Date("2017-12-31")),
-                 date_labels = "%b-%y") + 
-    theme(legend.position = "none")
+                 date_labels = "%b-%y") + ylim(0,170)
   
   
   E <- results_IBM_E %>% ggplot(aes(x = date,
@@ -86,18 +84,16 @@ plot_SEI <- function(FarmID,nruns){
                                 color_scheme[7], 
                                 color_scheme[3]),
                        labels = c("Calf", "Heifer", "Cow")) +
-    theme_bw(base_size = 12,
+    theme_bw(base_size = 11,
              base_family = "Lucida Bright") +
     labs(x = "",
          y = "Cattle [#]",
          title = "Exposed") +
-    geom_vline(xintercept = last_visit,
-               color = "gray60",
-               linetype = "dashed") +
-    scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+    scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
                                                  max = as.Date("2017-12-31")),
                  date_labels = "%b-%y") + 
-    theme(axis.text.x=element_blank())
+    theme(axis.text.x=element_blank(),
+          plot.margin=unit(c(0,0,0,0), "cm"))
   
   
   I <- results_IBM_I %>% ggplot(aes(x = date,
@@ -108,20 +104,20 @@ plot_SEI <- function(FarmID,nruns){
                                 color_scheme[7], 
                                 color_scheme[3]),
                        labels = c("Calf", "Heifer", "Cow")) +
-    theme_bw(base_size = 12,
+    theme_bw(base_size = 11,
              base_family = "Lucida Bright") +
     labs(x = "Date",
          y = "Cattle [#]",
-         title = "Infected") + 
-    geom_vline(xintercept = last_visit,
-               color = "gray60",
-               linetype = "dashed") +
-    scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+         title = "Infected") +
+    scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
                                                  max = as.Date("2017-12-31")),
                  date_labels = "%b-%y") + 
-    theme(legend.position = "none")
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.margin=unit(c(0,0,0,0), "cm"))
   
-  p <- S/E/I + plot_annotation(title = paste("Farm", FarmID, sep = " ")) & 
+  p <- S/E/I + plot_annotation(title = paste("Farm", FarmID, sep = " "),
+                               subtitle = "IBM - Median of simulations") & 
     theme(plot.title = element_text(family = "Lucida Bright"))
   
   
@@ -129,6 +125,7 @@ plot_SEI <- function(FarmID,nruns){
   
   return(p)
 }
+
 
 # Plot ODE function -------------------------------------------------------
 plot_ODE <- function(FarmID,ODEVar){
@@ -204,9 +201,10 @@ plot_SEI_total <- function(FarmID,nruns){
   
   load(paste0("results/IBM_",FarmID,".Rdata"))
   
-  color_scheme <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
+  color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
   
-  time <- as.integer(as.Date("2017-12-31")-Farm_var(FarmID)[[1]])
+  First_sample <- Farm_var(FarmID)[[1]]
+  time <- as.integer(as.Date("2017-12-31")-First_sample)
   last_visit <- Farm_var(FarmID)[[5]][[6]]
   
   
@@ -219,26 +217,35 @@ plot_SEI_total <- function(FarmID,nruns){
   # Calculate mean and confidence intervals -------------
   results_IBM <- bind_cols(IBM_S,IBM_E,IBM_I) %>% 
     mutate(timestep = rep(seq(1,time,1),nruns),
-           Simulation = rep(1:nruns, each = time)) %>% 
-    group_by(timestep, Simulation) %>% 
+           Simulation = rep(1:nruns, each = time),
+           date = as.Date(First_sample+timestep-1)) %>% 
+    group_by(timestep,date, Simulation) %>% 
     summarise(S = sum(S1,S2,S3),
               E = sum(E1,E2,E3),
               I = sum(I1,I2,I3)) %>% ungroup() %>% 
-    group_by(timestep) %>% 
-    summarise(mean_S = mean(S, na.rm = TRUE),
-              mean_E = mean(E, na.rm = TRUE),
-              mean_I = mean(I, na.rm = TRUE)) %>% 
+    group_by(timestep,date) %>% 
+    summarise(median_S = median(S, na.rm = TRUE),
+              median_E = median(E, na.rm = TRUE),
+              median_I = median(I, na.rm = TRUE)) %>% 
     pivot_longer(cols = starts_with("m"), names_to = "State", values_to = "Count")
   
   
-  p <- results_IBM %>% ggplot(aes(x = timestep,
+  p <- results_IBM %>% ggplot(aes(x = date,
                                   y = Count,
                                   group = State)) +
     geom_line(aes(color = State)) +
-    scale_color_manual(values = color_scheme[c(1,3,5)],
-                       labels = c("Exposed", "Infected","Susceptible")) +
-    theme_bw() +
-    labs(title = paste0("Farm ",FarmID, " - SEI total")) 
+    scale_color_manual(values = color_scheme_2[c(5,1,3)],
+                       labels = c("Susceptible", "Exposed","Infected")) +
+    theme_bw(base_size = 11) +
+    labs(title = paste0("Farm ",FarmID),
+          x = "Date",
+          y = "") +
+    scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+                                                 max = as.Date("2017-12-31")),
+                 date_labels = "%b-%y") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          legend.position = "bottom") + ylim(0,330)
+  
   
   return(p)
   
@@ -308,9 +315,12 @@ plot_validation <- function(FarmID){
     scale_shape_manual(values=c(rep(16,10),4)) +
     scale_color_manual(values = c(rep(Farm_col,10),"black")) +
     scale_size_manual(values=c(rep(1,10),3)) +
-    theme_bw() + 
+    theme_bw(base_family = "Lucida Bright",
+             base_size = 12) + 
     theme(legend.position = "none") +
-    labs(title = paste0("Farm ", FarmID, " simulations and farm data")) 
+    labs(title = paste0("Farm ", FarmID),
+         subtitle = "Cohort validation",
+         y = "Cattle [#]") 
   
   legend_1 <- plot_data %>% filter(Simulation == 1) %>% 
     ggplot(aes(Visit,
@@ -321,7 +331,7 @@ plot_validation <- function(FarmID){
     scale_color_manual(values = Farm_col,
                        label = "Simulations",
                        name = NULL) +
-    theme_bw()
+    theme_bw(base_size = 12)
   
   
   legend_2 <- plot_data %>% filter(Simulation == "Farm data") %>% 
@@ -334,7 +344,7 @@ plot_validation <- function(FarmID){
     geom_line(aes(color = Simulation)) +
     scale_color_manual(values = "black",
                        name = NULL) +
-    theme_bw()
+    theme_bw(base_size = 12)
   
   p <- plot_grid(full,
                  plot_grid(get_legend(legend_1),
@@ -350,6 +360,9 @@ plot_validation <- function(FarmID){
   return(p)    
   
 }  
+
+
+
 
 
 

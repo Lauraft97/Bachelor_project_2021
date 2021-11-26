@@ -13,17 +13,15 @@ ggplot(mapping = aes(x = x,
                      y = pexp(x,0.24))) +
   geom_line(col = color_scheme[1]) +
   #scale_color_brewer(palette = "Set2") +
-  theme_bw(base_size = 8) +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
   labs(x = "Corrected mean temperature [\u00B0C]",
        y = "Scalar",
-       title = "Transmission temperature scalar") +
+       title = expression(paste("Transmission ",lambda)),
+       subtitle = " Temperature scalar") +
   theme(legend.position = "none")
 
-ggsave(filename = "results/figures/trans_temp_scalar.png",
-       width = 10, 
-       height = 6.5, 
-       units = "cm",
-       dpi = 150)  
+ggsave(filename = "results/figures/Final_figures/trans_temp_scalar.png")
 
 
 # Temperature dependent exponential distribution CDF
@@ -32,18 +30,15 @@ ggplot(mapping = aes(x = x,
                      y = 1-pexp(x,0.24))) +
   geom_line(col = color_scheme[1]) +
   #scale_color_brewer(palette = "Set2") +
-  theme_bw(base_size = 8) +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
   labs(x = "Corrected mean temperature [\u00B0C]",
        y = "Scalar",
-       title = "Death rate temperature scalar") +
+       title = expression(paste("Death rates ",mu)),
+       subtitle = " Temperature scalar") +
   theme(legend.position = "none")
 
-ggsave(filename = "results/figures/mu_scalar.png",
-       width = 10, 
-       height = 6.5, 
-       units = "cm",
-       dpi = 150)  
-
+ggsave(filename = "results/figures/Final_figures/mu_scalar.png")
 
 
 
