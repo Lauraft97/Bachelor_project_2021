@@ -59,3 +59,21 @@ obs <- data %>% filter(EggCount>0) %>% pull(EggCount)
 plot.ecdf(nb, verticals=TRUE)
 plot.ecdf(obs, col="red", add=TRUE, verticals=TRUE)
 
+
+## ggplot------------------------------------------
+nb <- tibble(x = rnbinom(1e6, theta_mean, mu=dis_mean) %>% `[`(., .>0)) %>% 
+  mutate(type = "fit")
+obs <- tibble(x = data %>% filter(EggCount>0) %>% pull(EggCount)) %>% 
+  mutate(type = "obs")
+ecdf <- bind_rows(nb,obs)
+
+
+ggplot(ecdf, aes(x, colour = type)) +
+  stat_ecdf() +
+  scale_color_manual(values = c("black", "red")) +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
+  labs(x = "Index",
+       y = "% of eggs",
+       title = "ECDF function for excreation of eggs",
+       subtitle = "Fit on mean of the four farms")
