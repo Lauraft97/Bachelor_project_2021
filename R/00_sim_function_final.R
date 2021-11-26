@@ -1,8 +1,10 @@
 rm(list = ls())
 load("data/10_model_weather.RData")
 
-sim.seed <- c(563514,150992,5680773,2372580,1941657,
-              4065060,5462255,2833794,9486614,8365400)
+sim.seed <- c(903631, 768054, 731193, 440340, 632558, 157227, 934700, 974240, 
+              225449, 171099,  27584, 986934, 827124, 120986, 398323, 717908,
+              476569, 663670, 563274, 704639, 531485, 220707, 91848, 202764, 
+              739605, 533007, 581890, 195775, 537095, 957863)
 
 run_simulation <- function(FarmID,nruns){
 
@@ -438,7 +440,7 @@ run_simulation <- function(FarmID,nruns){
     sim_IBM[[sim_n]] <- list(S_Cow,E_Cow,I_Cow,Egg_new)
     sim_ODE[[sim_n]] <- list(Eggs, E1_S, E2_S, I_S, S_S, Snail_pop,M)
     
-    print(sim_n)
+    print(paste0("Simulation ",sim_n))
     
   }
   
@@ -448,16 +450,19 @@ run_simulation <- function(FarmID,nruns){
   
 }
 
+# Sofie: Skal køre C1 og C2
+# Anna: Kører O1
+# Laura: Kører O2
 
-result <- run_simulation("O1",10)
+result <- run_simulation("C1",30)
 
 sim_validation <- result[[1]]
 sim_ODE <- result[[3]]
 sim_IBM <- result[[2]]
 
 
-
-save(sim_validation,file = "results/validation_O1_01.RData")
-save(sim_IBM,file = "results/IBM_O1_01.RData")
-save(sim_ODE,file = "results/ODE_O1_01.RData")
+# HUSK AT ÆNDRE FIL NAVN
+save(sim_validation,file = "results/validation_C1.RData")
+save(sim_IBM,file = "results/IBM_C1.RData")
+save(sim_ODE,file = "results/ODE_C1.RData")
 
