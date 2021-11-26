@@ -96,15 +96,16 @@ I_pr_cow_pr_day <- I_pr_cow / n_days
 #I_pr_cow_pr_day[,-1]*300
 
 #Probabilities for infection
+load("results/Metacercariae.RData")
 
-metac <- M
+metac <- Metacercariae %>% filter(Farm == "C2") %>% 
+  select(median) %>% pull()
 
-x <- 10^-6.5
+x <- 10^-7
 
 cow_prob_mean <- seq(1,length(metac))
 
 for(i in 1:length(metac)){
-  
   M_1 <- metac[i]
   grazing <- runif(300,0,1)
   prob <- 1-exp(-grazing*M_1*x)
@@ -125,7 +126,7 @@ visits[6] <- mean(cow_prob_mean[475:620])
 O1 <- I_pr_cow_pr_day[3,-1]
 C1 <- I_pr_cow_pr_day[1,-1]
 O2 <- I_pr_cow_pr_day[4,-1]
-C2 <- as.numeric(I_pr_cow_pr_day[2,-1])
+C2 <- I_pr_cow_pr_day[2,-1]
 
 #Plot
 sim_transmission <- tibble(dates = c("B","C","D","E","F","G"),
@@ -147,7 +148,8 @@ sim_transmission %>% ggplot(mapping = aes(x = dates,
   geom_point(aes(y = O2, col="O2"))+
   geom_line(aes(y = O2),col = color_scheme[8])+
   theme(legend.position = "bottom") +
-  theme_bw(base_size = 8) +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
   scale_color_manual(name="Farm name",
                      breaks=c("Simulation", "C1", "C2", "O1","O2"),
                      values=c("Simulation"= 1, "C1" = color_scheme[4],
@@ -156,13 +158,9 @@ sim_transmission %>% ggplot(mapping = aes(x = dates,
                      guide = guide_legend(override.aes = list(shape = c(4, 16, 16, 16, 16),
                                                               size = c(2,2,2,2,2))))+
   labs(x = "Visit",
-       y = "Transmission proberbility",
+       y = "Transmission probability",
        title = "Comparing simulated transmission probabilities with farm data",
        subtitle = "Scaling factor = 10^(-7)")
 
-ggsave(filename = "results/figures/03_trans_prob.png",
-       width = 10*1.5, 
-       height = 6.5, 
-       units = "cm",
-       dpi = 150) 
+ggsave(filename = "results/figures/03_trans_prob.png") 
 

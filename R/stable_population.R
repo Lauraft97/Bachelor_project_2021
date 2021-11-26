@@ -131,11 +131,12 @@ for(i in 1:length(sla_prob_vec)){
 # Plotting ----------------------------------------------------------------
 
 save(Pop,file = "results/Pop_0.1_0.9_full.RData")
-#Loading data
-#load("results/Pop_0.1_0.9.RData")
-#load("results/Pop_0.4_0.6.RData")
 
-# Spanding from 0.1 to 0.9
+#  Loading data
+load("results/Pop_0.1_0.9_full.RData")
+time <- 365*3
+
+#Plot
 ggplot(mapping = aes(x = 1:time)) +
   scale_color_manual(values=c(color_scheme[9], 
                               color_scheme[2], 
@@ -166,13 +167,13 @@ ggplot(mapping = aes(x = 1:time)) +
   geom_line(aes(y = Pop[9,],
                 col = "0.9")) +
   geom_hline(yintercept = 312,linetype = "dashed", col = "gray60", size = 0.5) +
-  labs(title = "Cattle population",
+  labs(title = "Population of cattle",
        x = "Days",
        y = "Cattle [#]")+
   theme_bw(base_family = "Lucida Bright",
            base_size = 12)
 
-ggsave(filename = "results/figures/stable_pop.png")
+ggsave(filename = "results/figures/Final_figures/stable_pop.png")
   
 
 
