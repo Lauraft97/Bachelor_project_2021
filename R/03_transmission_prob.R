@@ -97,6 +97,7 @@ I_pr_cow_pr_day <- I_pr_cow / n_days
 
 #Probabilities for infection
 load("results/Metacercariae.RData")
+#load("results/grazing_visits.RData")
 
 metac <- Metacercariae %>% filter(Farm == "C2") %>% 
   select(median) %>% pull()
