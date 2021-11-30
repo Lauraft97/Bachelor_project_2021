@@ -97,30 +97,43 @@ for (i in x){
 ggplot(mapping = aes(x = x,
                      y = y)) +
   geom_hline(yintercept = 0, linetype = "dashed", col = "gray60") +
-  geom_point(col = color_scheme[1]) +
+  geom_point(col = color_scheme[1], size = 2.5) +
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
   labs(title = "Sine function",
        subtitle = "Function to correct for differences between air and ground temperature",
        x = "Time [h]",
        y = "Degrees to add") +
-  theme(axis.title.y = element_text(vjust=1))
+  scale_x_continuous(name = "Hour of the day",
+                     breaks = seq(0,23,1),
+                     labels = c("midnight","01","02","03","04","05","06","07",
+                                "08","09","10","11","noon","13","14","15","16",
+                                "17","18","19","20","21","22","23")) +
+  scale_y_continuous(name = "Degrees to add",
+                     breaks = seq(-4,2,1)) +
+  theme(axis.title.y = element_text(vjust=1),
+        axis.text.x = element_text(vjust = 1, hjust=1, angle=45))
 
 ggsave(filename = "results/figures/05_sine_function.png")  
 
-
-
 # Plot of temperature -----------------------------------------------------
-First_sample <- as.Date("2015-04-27")
+break.vec <- c(as.Date("2015-01-01"),
+               seq(from = as.Date("2015-04-01"), to = as.Date("2017-12-01"),
+                   by = "3 months"),
+               as.Date("2018-01-01"))
 
-daily_weather %>% filter(Date >= First_sample & Date <= as.Date("2017-12-31")) %>% 
+daily_weather %>% filter(Date >= as.Date("2015-01-01") & Date <= as.Date("2017-12-31")) %>% 
   ggplot(mapping = aes(x = Date,
                        y = mean_ground_temp_ten)) +
   theme_bw(base_size = 12,
            base_family = "Lucida Bright")+
-  geom_line()+
+  geom_line(col = color_scheme[1])+
   labs(y = "Corrected ground temperature")+
-  facet_wrap(~location, nrow = 2)
+  scale_x_date(breaks = break.vec, date_labels = "%b-%y")+
+  theme(axis.text.x = element_text(vjust = 1, hjust=1, angle=45))+
+  facet_wrap(~location, labeller = as_labeller(c("Frederikssund" = "Frederikssund", 
+                                                 "Toender" = "Tønder")),
+             nrow = 2)
 
 ggsave(filename = "results/figures/05_corr_temp.png") 
 
