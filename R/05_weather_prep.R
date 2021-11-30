@@ -79,14 +79,8 @@ daily_weather <- daily_weather %>% arrange(location,Date)
 save(daily_weather,file = "data/10_model_weather.RData")
 
 
-# daily_weather %>% filter(Date <= as.Date("2016-01-01")) %>%
-#   ggplot(mapping = aes(x = Date,
-#                        y = mean_ground_temp_ten)) +
-#   geom_line()
-
-
 # Plot of sine function ---------------------------------------------------
-
+#Sys.setlocale("LC_TIME", "C")
 x <- c(0:23)
 y <- rep(0,24)
 
@@ -114,9 +108,9 @@ ggplot(mapping = aes(x = x,
   theme(axis.title.y = element_text(vjust=1),
         axis.text.x = element_text(vjust = 1, hjust=1, angle=45))
 
-ggsave(filename = "results/figures/05_sine_function.png")  
+ggsave(filename = "results/figures/Final_figures/05_sine_function.png")  
 
-# Plot of temperature -----------------------------------------------------
+# Plot of corrected temperature -----------------------------------------------------
 break.vec <- c(as.Date("2015-01-01"),
                seq(from = as.Date("2015-04-01"), to = as.Date("2017-12-01"),
                    by = "3 months"),
@@ -135,7 +129,7 @@ daily_weather %>% filter(Date >= as.Date("2015-01-01") & Date <= as.Date("2017-1
                                                  "Toender" = "Tønder")),
              nrow = 2)
 
-ggsave(filename = "results/figures/05_corr_temp.png") 
+ggsave(filename = "results/figures/Final_figures/05_corr_temp.png") 
 
 # Rain plot and exploration -----------------------------------------------
 

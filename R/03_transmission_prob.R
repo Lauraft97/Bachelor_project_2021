@@ -3,8 +3,10 @@
 rm(list = ls())
 
 library(tidyverse)
+library(patchwork)
 library("RColorBrewer")
 color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
+color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
 
 
 # Import functions --------------------------------------------------------
@@ -25,7 +27,6 @@ fluke_data <- fluke_data %>% mutate(Group = factor(x = Group,
 
 # Subsetting all the cows which at some point have a positive test
 # Divides data sets into each farm
-
 fluke_diag <- fluke_data %>% rowwise() %>% 
   mutate(Diag = sum(as.numeric(dEPG),
                     as.numeric(dSerum),
@@ -33,13 +34,6 @@ fluke_diag <- fluke_data %>% rowwise() %>%
                     na.rm = TRUE),
          Diag = if_else(Diag > 0, TRUE, FALSE))
 
-#a <- fluke_data %>% filter(dEPG == TRUE)
-
-#a %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
-#fluke_diag %>% filter(Diag == TRUE) %>% group_by(Farm) %>% distinct(UniqueID) %>% summarise(n = n())
-
-#Cohort size
-#fluke_data %>% group_by(Farm) %>% distinct(UniqueID) %>%  summarise(n = n())
 
 Farm_name <- c("C1","C2","O1","O2")
 
@@ -50,8 +44,8 @@ n_Infected <- matrix(nrow = 4,
                      dimnames = list(Farm_name,Visit_name))
 
 n_cow <- matrix(nrow = 4,
-                     ncol = 7,
-                     dimnames = list(Farm_name,Visit_name))
+                ncol = 7,
+                dimnames = list(Farm_name,Visit_name))
 
 n_days <- matrix(nrow = 4,
                  ncol = 7,
@@ -89,57 +83,51 @@ n_days[k,] <- diff(dates)
 # Infected per visit per cow susceptible in cohort
 I_pr_cow <- n_Infected / n_cow
 
-#I_pr_cow[,-1]
-
 I_pr_cow_pr_day <- I_pr_cow / n_days
 
-#I_pr_cow_pr_day[,-1]*300
+#Simulated probabilities
+load("results/Meta_sim.RData")
 
-#Probabilities for infection
-load("results/Metacercariae.RData")
-#load("results/grazing_visits.RData")
+M_scaling <- c(10^-8,10^-7,10^-6)
+M_scaling_results <- as.matrix(M_scaling_results)
 
-metac <- Metacercariae %>% filter(Farm == "C2") %>% 
-  select(median) %>% pull()
+cow_prob_mean <- matrix(NA, nrow = 650, ncol = 3)
 
-x <- 10^-7
 
-cow_prob_mean <- seq(1,length(metac))
-
-for(i in 1:length(metac)){
-  M_1 <- metac[i]
-  grazing <- runif(300,0,1)
-  prob <- 1-exp(-grazing*M_1*x)
+for(j in 1:3){
+  M_scale <- M_scaling[j]
+  Meta_pop <- M_scaling_results[,j]
   
-  cow_prob_mean[i] <- mean(prob)
+  for(i in 1:650){
+    Meta_pop_use <- Meta_pop[i]
+    grazing <- runif(300,0,1)
+    prob <- 1-exp(-grazing*Meta_pop_use*M_scale)
+    
+    cow_prob_mean[i,j] <- mean(prob)
+  }
 }
 
+visits <- matrix(NA, nrow = 6, ncol = 3)
 
-visits <- seq(1,6)
-
-visits[1] <- mean(cow_prob_mean[1:95])
-visits[2] <- mean(cow_prob_mean[96:195])
-visits[3] <- mean(cow_prob_mean[196:276])
-visits[4] <- mean(cow_prob_mean[277:345])
-visits[5] <- mean(cow_prob_mean[346:474])
-visits[6] <- mean(cow_prob_mean[475:620])
-
-O1 <- I_pr_cow_pr_day[3,-1]
-C1 <- I_pr_cow_pr_day[1,-1]
-O2 <- I_pr_cow_pr_day[4,-1]
-C2 <- I_pr_cow_pr_day[2,-1]
+visits[1,] <- colMeans(cow_prob_mean[1:91,])
+visits[2,] <- colMeans(cow_prob_mean[92:198,])
+visits[3,] <- colMeans(cow_prob_mean[199:281,])
+visits[4,] <- colMeans(cow_prob_mean[282:353,])
+visits[5,] <- colMeans(cow_prob_mean[354:476,])
+visits[6,] <- colMeans(cow_prob_mean[477:630,])
 
 #Plot
 sim_transmission <- tibble(dates = c("B","C","D","E","F","G"),
-                           simulation = visits,
+                           simulation_M8 = visits[,1],
+                           simulation_M7 = visits[,2],
+                           simulation_M6 = visits[,3],
                            C1 = as.numeric(I_pr_cow_pr_day[1,-1]),
                            C2 = as.numeric(I_pr_cow_pr_day[2,-1]),
                            O1 = as.numeric(I_pr_cow_pr_day[3,-1]),
                            O2 = as.numeric(I_pr_cow_pr_day[4,-1]))
 
-sim_transmission %>% ggplot(mapping = aes(x = dates,
-                                          group = 4)) +
-  geom_point(aes(y = simulation, col ="Simulation"), shape = 4, size = 3) +
+p1 <- sim_transmission %>% ggplot(mapping = aes(x = dates,
+                                          group = 6)) +
   geom_point(aes(y = C1, col = "C1"))+ 
   geom_line(aes(y = C1), color = color_scheme[4])+
   geom_point(aes(y = C2,col ="C2"))+
@@ -148,20 +136,54 @@ sim_transmission %>% ggplot(mapping = aes(x = dates,
   geom_line(aes(y = O1),col = color_scheme[6])+
   geom_point(aes(y = O2, col="O2"))+
   geom_line(aes(y = O2),col = color_scheme[8])+
+  geom_point(aes(y = simulation_M8, col ="M_scaling = 10^(-8)"), shape = 4, size = 3) +
+  geom_point(aes(y = simulation_M7, col ="M_scaling = 10^(-7)"), shape = 4, size = 3) +
+  geom_point(aes(y = simulation_M6, col ="M_scaling = 10^(-6)"), shape = 4, size = 3) +
   theme(legend.position = "bottom") +
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
-  scale_color_manual(name="Farm name",
-                     breaks=c("Simulation", "C1", "C2", "O1","O2"),
-                     values=c("Simulation"= 1, "C1" = color_scheme[4],
-                              "C2" = color_scheme[5],"O1" = color_scheme[6],
-                              "O2" = color_scheme[8]),
-                     guide = guide_legend(override.aes = list(shape = c(4, 16, 16, 16, 16),
-                                                              size = c(2,2,2,2,2))))+
-  labs(x = "Visit",
+  scale_color_manual(name="",
+                     breaks=c("M_scaling = 10^(-8)","M_scaling = 10^(-7)",
+                              "M_scaling = 10^(-6)", "C1", "C2", "O1","O2"),
+                     values=c("M_scaling = 10^(-8)"= color_scheme_2[2],
+                              "M_scaling = 10^(-7)"= color_scheme_2[6],
+                              "M_scaling = 10^(-6)"= color_scheme_2[10], 
+                              "C1" = color_scheme[4],"C2" = color_scheme[5],
+                              "O1" = color_scheme[6],"O2" = color_scheme[8]),
+                     guide = guide_legend(override.aes = list(shape = c(4,4,4,16,16,16,16),
+                                                              size = c(2,2,2,2,2,2,2))))+
+  labs(x = "",
        y = "Transmission probability",
-       title = "Comparing simulated transmission probabilities with farm data",
-       subtitle = "Scaling factor = 10^(-7)")
+       title = "Comparing simulated transmission probabilities with farm \n data using different scaling factors")
 
-ggsave(filename = "results/figures/03_trans_prob.png") 
+p2 <- sim_transmission %>% ggplot(mapping = aes(x = dates,
+                                                group = 5)) +
+  geom_point(aes(y = C1, col = "C1"))+ 
+  geom_line(aes(y = C1), color = color_scheme[4])+
+  geom_point(aes(y = C2,col ="C2"))+
+  geom_line(aes(y = C2),col = color_scheme[5])+
+  geom_point(aes(y = O1, col = "O1"))+
+  geom_line(aes(y = O1),col = color_scheme[6])+
+  geom_point(aes(y = O2, col="O2"))+
+  geom_line(aes(y = O2),col = color_scheme[8])+
+  geom_point(aes(y = simulation_M8, col ="M_scaling = 10^(-8)"), shape = 4, size = 3) +
+  geom_point(aes(y = simulation_M7, col ="M_scaling = 10^(-7)"), shape = 4, size = 3) +
+  theme_bw(base_size = 12,
+           base_family = "Lucida Bright") +
+  scale_color_manual(name="",
+                     breaks=c("M_scaling = 10^(-8)","M_scaling = 10^(-7)",
+                              "C1", "C2", "O1","O2"),
+                     values=c("M_scaling = 10^(-8)"= color_scheme_2[2],
+                              "M_scaling = 10^(-7)"= color_scheme_2[6],
+                              "C1" = color_scheme[4],"C2" = color_scheme[5],
+                              "O1" = color_scheme[6],"O2" = color_scheme[8]),
+                     guide = guide_legend(override.aes = list(shape = c(4,4,16,16,16,16),
+                                                              size = c(2,2,2,2,2,2))))+
+  labs(x = "Visit",
+       y = "Transmission probability")+
+  theme(legend.position = "none") 
+
+
+p1/p2
+ggsave(filename = "results/figures/Final_figures/03_trans_prob.png") 
 
