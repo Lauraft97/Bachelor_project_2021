@@ -454,7 +454,6 @@ save(Snails, file = "results/Snails.RData")
 
 
 # Metacerceriae
-# Exposed_2 --------------------------------------------------------------
 
 # C1 ----------------------------------------------------------------
 FarmID = "C1"
@@ -510,7 +509,7 @@ Metacercariae <- total %>%
   mutate(median = median(c_across(starts_with("V"))),
          Q1 = quantile(c_across(starts_with("V")), 0.25),
          Q3 = quantile(c_across(starts_with("V")), 0.75)) %>% 
-  select(Farm, date, variable, Q1, median, Q3)
+  select(Farm, date, Q1, median, Q3)
 
 save(Metacercariae, file = "results/Metacercariae.RData")
 
