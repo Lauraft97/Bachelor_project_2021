@@ -1,10 +1,12 @@
-C1 <- plot_SEI_total("C1",10)
-C2 <- plot_SEI_total("C2",10)
-O1 <- plot_SEI_total("O1",10)
-O2 <- plot_SEI_total("O2",10)
+C1 <- plot_SEI_total("C1",30)
+C2 <- plot_SEI_total("C2",30)
+O1 <- plot_SEI_total("O1",30)
+O2 <- plot_SEI_total("O2",30)
+
+library(cowplot)
 
 
-legend <- plot_SEI_total("O2",10)
+legend <- plot_SEI_total("O2",30)
 
 
 title <- "IBM - SEI dynamics"
