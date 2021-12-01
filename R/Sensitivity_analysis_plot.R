@@ -1,6 +1,8 @@
 rm(list = ls())
 
 library(epiR)
+library(tidyverse)
+library(GGally)
 
 
 load("results/sensitivity_O1_Anna.RData")
@@ -75,8 +77,21 @@ ggsave("results/figures/Final_figures/PRCC.png")
 
 # Scatterplot -------------------------------------------------------------
 
+#Full scatter plot, needs to go into the appendix
+ggpairs(results,  columnLabels = c("\u03BB_ES","\u03BC_Egg","\u03B4_S","\u03B3_S",
+                                   "\u03BC_S","\u03BC_M",
+                                  "Slaughter prob", "egg_\u03BC_scaled",
+                                  "Baseline snail \n population","End infected")) + 
+        theme_bw()
 
+#Scatter plot for only significant p-values
+ggpairs(results, columns = c("lambda_ES_sa","mu_Egg_sa","delta_snail_sa","gamma_S_sa","mu_M_sa",
+                             "sla_prob","Snail_pop0","End_infected"),  
+        columnLabels = c("\u03BB_ES","\u03BC_Egg","\u03B4_S","\u03B3_S",
+                         "\u03BC_M",
+                                   "Slaughter prob",
+                                   "Baseline snail \n population","End infected")) + 
+        theme_bw()
 
-library(GGally)
+ggsave("results/figures/Final_figures/scatter.png")
 
-ggpairs(results) + theme_bw()
