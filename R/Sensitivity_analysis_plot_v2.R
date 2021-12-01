@@ -38,39 +38,39 @@ PRCC <- tibble(PRCC)
 PRCC <- PRCC %>% mutate(variable = colnames(results[,-10]) )
 
 PRCC %>% filter(p.value < 0.05) %>% 
-        ggplot(aes(x = variable, 
-                   y = est,
-                   fill = variable)) +
-        geom_bar(stat="identity",
-                 color = "gray40") + 
-        geom_label(aes(label=round(est,2),
-                       family = "Lucida Bright")) + 
-        scale_fill_manual(values = c(color_scheme_2[1],
-                                     color_scheme_2[3],
-                                     color_scheme_2[5],
-                                     color_scheme_2[7],
-                                     color_scheme_2[9],
-                                     color_scheme_2[11])) +
-        theme_bw(base_family = "Lucida Bright",
-                 base_size = 12) +
-        labs(title = "Partial rank correlation coefficients - Infected cattle at the last time point",
-             subtitle = "p-values < 0.05",
-             x = "",
-             y = "PRCC") +
-        theme(legend.position = "none",
-              axis.text.x = element_text(size = 12)) + 
-        scale_x_discrete(limit = c("sla_prob",
-                                   "delta_snail_sa",
-                                   "Snail_pop0",
-                                   "mu_M_sa",
-                                   "mu_S_sa",
-                                   "gamma_S_sa"),
-                         labels = c("Slaughter probability",
-                                    expression(delta[S]),
-                                    "Baseline snail population", 
-                                    expression(mu[M]),
-                                    expression(mu[S]),
-                                    expression(gamma[S]))) 
+  ggplot(aes(x = variable, 
+             y = est,
+             fill = variable)) +
+  geom_bar(stat="identity",
+           color = "gray40") + 
+  geom_label(aes(label=round(est,2),
+                 family = "Lucida Bright")) + 
+  scale_fill_manual(values = c(color_scheme_2[1],
+                               color_scheme_2[3],
+                               color_scheme_2[5],
+                               color_scheme_2[7],
+                               color_scheme_2[9],
+                               color_scheme_2[11])) +
+  theme_bw(base_family = "Lucida Bright",
+           base_size = 12) +
+  labs(title = "Partial rank correlation coefficients - Infected cattle at the last time point",
+       subtitle = "p-values < 0.05",
+       x = "",
+       y = "PRCC") +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 12)) + 
+  scale_x_discrete(limit = c("sla_prob",
+                             "delta_snail_sa",
+                             "Snail_pop0",
+                             "mu_M_sa",
+                             "mu_S_sa",
+                             "gamma_S_sa"),
+                   labels = c("Slaughter probability",
+                              expression(delta[S]),
+                              "Baseline snail population", 
+                              expression(mu[M]),
+                              expression(mu[S]),
+                              expression(gamma[S]))) 
 
 ggsave("results/figures/Final_figures/PRCC.png")
 
@@ -84,23 +84,23 @@ ggsave("results/figures/Final_figures/PRCC.png")
 #         theme_bw()
 panel.cor <- function(x, y, digits = 2, cex.cor, ...)
 {
-        usr <- par("usr"); on.exit(par(usr))
-        par(usr = c(0, 1, 0, 1))
-        # correlation coefficient
-        r <- cor(x, y)
-        p <- cor.test(x, y)$p.value
-        txt <- format(c(r, 0.123456789), digits = digits)[1]
-        if(p >= 0.05) txt <- paste0("Corr  \n", txt)
-        if(p < 0.05 & p >= 0.01) txt <- paste0("Corr  \n", txt,"*")
-        if(p < 0.01 & p >= 0.001) txt <- paste0("Corr  \n",txt,"**")
-        if(p < 0.001) txt <- paste0("Corr  \n",txt,"***")
-        text(0.5, 0.5, txt)
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  # correlation coefficient
+  r <- cor(x, y)
+  p <- cor.test(x, y)$p.value
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  if(p >= 0.05) txt <- paste0("Corr  \n", txt)
+  if(p < 0.05 & p >= 0.01) txt <- paste0("Corr  \n", txt,"*")
+  if(p < 0.01 & p >= 0.001) txt <- paste0("Corr  \n",txt,"**")
+  if(p < 0.001) txt <- paste0("Corr  \n",txt,"***")
+  text(0.5, 0.5, txt)
 }
 
 
 # Customize upper panel
 upper.panel<-function(x, y){
-        points(x,y, pch = 16, col = color_scheme[1])
+  points(x,y, pch = 16, col = color_scheme[1])
 }
 
 # Create the plots
