@@ -116,7 +116,7 @@ pairs(results,
                  "Slaughter \n probability",
                  expression(paste("egg_",mu,"_scaled")),
                  "Baseline snail \n population",
-                 "End infected"),
-      cex.labels=1.2)
+                 "End \n infected"),
+      cex.labels=1.15,gap=0.5)
 
 
