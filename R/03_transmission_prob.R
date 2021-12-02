@@ -93,7 +93,6 @@ M_scaling_results <- as.matrix(M_scaling_results)
 
 cow_prob_mean <- matrix(NA, nrow = 650, ncol = 3)
 
-
 for(j in 1:3){
   M_scale <- M_scaling[j]
   Meta_pop <- M_scaling_results[,j]
@@ -116,8 +115,8 @@ visits[4,] <- colMeans(cow_prob_mean[282:353,])
 visits[5,] <- colMeans(cow_prob_mean[354:476,])
 visits[6,] <- colMeans(cow_prob_mean[477:630,])
 
-#Plot
-sim_transmission <- tibble(dates = c("B","C","D","E","F","G"),
+#Simulation and farm data in 1 tibble
+sim_transmission <- tibble(Visit_name = c("B","C","D","E","F","G"),
                            simulation_M8 = visits[,1],
                            simulation_M7 = visits[,2],
                            simulation_M6 = visits[,3],
@@ -126,64 +125,10 @@ sim_transmission <- tibble(dates = c("B","C","D","E","F","G"),
                            O1 = as.numeric(I_pr_cow_pr_day[3,-1]),
                            O2 = as.numeric(I_pr_cow_pr_day[4,-1]))
 
-p1 <- sim_transmission %>% ggplot(mapping = aes(x = dates,
-                                          group = 6)) +
-  geom_point(aes(y = C1, col = "C1"))+ 
-  geom_line(aes(y = C1), color = color_scheme[4])+
-  geom_point(aes(y = C2,col ="C2"))+
-  geom_line(aes(y = C2),col = color_scheme[5])+
-  geom_point(aes(y = O1, col = "O1"))+
-  geom_line(aes(y = O1),col = color_scheme[6])+
-  geom_point(aes(y = O2, col="O2"))+
-  geom_line(aes(y = O2),col = color_scheme[8])+
-  geom_point(aes(y = simulation_M8, col ="M_scaling = 10^(-8)"), shape = 4, size = 3) +
-  geom_point(aes(y = simulation_M7, col ="M_scaling = 10^(-7)"), shape = 4, size = 3) +
-  geom_point(aes(y = simulation_M6, col ="M_scaling = 10^(-6)"), shape = 4, size = 3) +
-  theme(legend.position = "bottom") +
-  theme_bw(base_size = 12,
-           base_family = "Lucida Bright") +
-  scale_color_manual(name="",
-                     breaks=c("M_scaling = 10^(-8)","M_scaling = 10^(-7)",
-                              "M_scaling = 10^(-6)", "C1", "C2", "O1","O2"),
-                     values=c("M_scaling = 10^(-8)"= color_scheme_2[2],
-                              "M_scaling = 10^(-7)"= color_scheme_2[6],
-                              "M_scaling = 10^(-6)"= color_scheme_2[10], 
-                              "C1" = color_scheme[4],"C2" = color_scheme[5],
-                              "O1" = color_scheme[6],"O2" = color_scheme[8]),
-                     guide = guide_legend(override.aes = list(shape = c(4,4,4,16,16,16,16),
-                                                              size = c(2,2,2,2,2,2,2))))+
-  labs(x = "",
-       y = "Transmission probability",
-       title = "Comparing simulated transmission probabilities with farm \n data using different scaling factors")
+sim_transmission <- sim_transmission %>% 
+  pivot_longer(!Visit_name, 
+               names_to = "Farm_simulation", 
+               values_to = "trans_prob")
 
-p2 <- sim_transmission %>% ggplot(mapping = aes(x = dates,
-                                                group = 5)) +
-  geom_point(aes(y = C1, col = "C1"))+ 
-  geom_line(aes(y = C1), color = color_scheme[4])+
-  geom_point(aes(y = C2,col ="C2"))+
-  geom_line(aes(y = C2),col = color_scheme[5])+
-  geom_point(aes(y = O1, col = "O1"))+
-  geom_line(aes(y = O1),col = color_scheme[6])+
-  geom_point(aes(y = O2, col="O2"))+
-  geom_line(aes(y = O2),col = color_scheme[8])+
-  geom_point(aes(y = simulation_M8, col ="M_scaling = 10^(-8)"), shape = 4, size = 3) +
-  geom_point(aes(y = simulation_M7, col ="M_scaling = 10^(-7)"), shape = 4, size = 3) +
-  theme_bw(base_size = 12,
-           base_family = "Lucida Bright") +
-  scale_color_manual(name="",
-                     breaks=c("M_scaling = 10^(-8)","M_scaling = 10^(-7)",
-                              "C1", "C2", "O1","O2"),
-                     values=c("M_scaling = 10^(-8)"= color_scheme_2[2],
-                              "M_scaling = 10^(-7)"= color_scheme_2[6],
-                              "C1" = color_scheme[4],"C2" = color_scheme[5],
-                              "O1" = color_scheme[6],"O2" = color_scheme[8]),
-                     guide = guide_legend(override.aes = list(shape = c(4,4,16,16,16,16),
-                                                              size = c(2,2,2,2,2,2))))+
-  labs(x = "Visit",
-       y = "Transmission probability")+
-  theme(legend.position = "none") 
-
-
-p1/p2
-ggsave(filename = "results/figures/Final_figures/03_trans_prob.png") 
+save(sim_transmission,file = "results/sim_transmission.RData")
 
