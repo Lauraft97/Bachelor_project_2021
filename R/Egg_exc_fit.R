@@ -31,14 +31,23 @@ obs <- tibble(egg = fit_data %>% filter(EggCount>0 & EggCount < 100) %>% pull(Eg
 
 ecdf <- bind_rows(nb,obs)
 
-ggplot(ecdf, aes(egg, colour = type)) +
+ggplot(ecdf, aes(egg, 
+                 colour = type,
+                 size = type)) +
   stat_ecdf() +
-  scale_color_manual(values = c(color_scheme_2[2],
-                                color_scheme_2[5])) +
+  scale_color_manual(values = c(color_scheme_2[1],
+                                color_scheme_2[6]),
+                     label = c("Fit", "Farm data"),
+                     name = "") +
+  scale_size_manual(values = c(2,1),
+                    label = c("Fit", "Farm data"),
+                    name = "") +
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
-  labs(x = "Index",
-       y = "% of eggs",
-       title = "ECDF function for excreation of eggs",
-       subtitle = "Fit on mean of the four farms") +
+  labs(x = "Eggs",
+       y = "Density",
+       title = "ECDF - Distribution describing excretion of eggs",
+       subtitle = "Fit on all four farms") +
   xlim(0,60)
+
+ggsave("results/figures/Final_figures/ECDF.png")

@@ -132,9 +132,9 @@ Eggs %>% filter(variable == "Egg" & Farm == "O1" &
   geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quantiles"), alpha =  0.3) + 
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
-  scale_color_manual(values = color_scheme[1],
+  scale_color_manual(values = color_scheme[6],
                      name = "") + 
-  scale_fill_manual(values = color_scheme[1],
+  scale_fill_manual(values = color_scheme[6],
                     name = "") + 
   labs(x = "Date",
        y = "Eggs [#]",
@@ -144,7 +144,8 @@ Eggs %>% filter(variable == "Egg" & Farm == "O1" &
                                                max = as.Date("2017-11-01")),
                date_labels = "%b-%y") +
   scale_y_continuous(labels = function(x) format(x, big.mark = ",",
-                                                 scientific = FALSE)) 
+                                                 scientific = FALSE))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave(filename = "results/figures/Final_figures/ODE_Eggs_quantiles_O1.png")
 
@@ -161,7 +162,7 @@ E1 <- Snails %>% filter(variable == "E1") %>% ggplot(aes(x = date,
                               color_scheme[5], 
                               color_scheme[6],
                               color_scheme[8])) +
-  theme_bw(base_size = 12,
+  theme_bw(base_size = 11,
            base_family = "Lucida Bright") +
   labs(x = "",
        y = "Snails [#]",
@@ -185,7 +186,7 @@ E2 <- Snails %>% filter(variable == "E2") %>% ggplot(aes(x = date,
                               color_scheme[5], 
                               color_scheme[6],
                               color_scheme[8])) +
-  theme_bw(base_size = 12,
+  theme_bw(base_size = 11,
            base_family = "Lucida Bright") +
   labs(x = "",
        y = "",
@@ -208,7 +209,7 @@ I <- Snails %>% filter(variable == "I") %>% ggplot(aes(x = date,
                               color_scheme[5], 
                               color_scheme[6],
                               color_scheme[8])) +
-  theme_bw(base_size = 12,
+  theme_bw(base_size = 11,
            base_family = "Lucida Bright") +
   labs(x = "Date",
        y = "Snails [#]",
@@ -224,7 +225,55 @@ I <- Snails %>% filter(variable == "I") %>% ggplot(aes(x = date,
 ggsave(filename = "results/figures/Final_figures/ODE_snail_EI.png")
 
 # Exposed state 1 and 2 and infected snails 
-Snails %>% filter(Farm == "O1" & variable %in% c("E1","E2","I")) %>% 
+C1_EI <- Snails %>% filter(Farm == "C1" & variable %in% c("E1","E2","I")) %>% 
+  ggplot(aes(x = date,
+             y = median,
+             color = variable)) +
+  geom_line(alpha = 0.6) + 
+  scale_color_manual(values=c(color_scheme_2[4], 
+                              color_scheme_2[8], 
+                              color_scheme_2[10]),
+                     name = "State") + 
+  theme_bw(base_size = 11,
+           base_family = "Lucida Bright") +
+  labs(x = "Date",
+       y = "Snails [#]",
+       title = "Exposed and infected snails",
+       subtitle = "Farm C1; ODE - Median of simulations") +
+  scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+                                               max = as.Date("2017-12-31")),
+               date_labels = "%b-%y")  +
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",",
+                                                 scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+
+O1_EI <- Snails %>% filter(Farm == "O1" & variable %in% c("E1","E2","I")) %>% 
+  ggplot(aes(x = date,
+             y = median,
+             color = variable)) +
+  geom_line(alpha = 0.6) + 
+  scale_color_manual(values=c(color_scheme_2[4], 
+                              color_scheme_2[8], 
+                              color_scheme_2[10]),
+                     name = "State") + 
+  theme_bw(base_size = 11,
+           base_family = "Lucida Bright") +
+  labs(x = "Date",
+       y = "",
+       title = "",
+       subtitle = "Farm O1; ODE - Median of simulations") +
+  scale_x_date(breaks = "4 months", limits = c(min = First_sample, 
+                                               max = as.Date("2017-12-31")),
+               date_labels = "%b-%y")  +
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",",
+                                                 scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+
+legend <- Snails %>% filter(Farm == "C1" & variable %in% c("E1","E2","I")) %>% 
   ggplot(aes(x = date,
              y = median,
              color = variable)) +
@@ -237,15 +286,27 @@ Snails %>% filter(Farm == "O1" & variable %in% c("E1","E2","I")) %>%
            base_family = "Lucida Bright") +
   labs(x = "Date",
        y = "Snails [#]",
-       title = "Exposed and infected snails on farm O1",
+       title = "Exposed and infected snails on farm C1",
        subtitle = "ODE - Median of simulations") +
   scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
                                                max = as.Date("2017-12-31")),
                date_labels = "%b-%y")  +
   scale_y_continuous(labels = function(x) format(x, big.mark = ",",
-                                                 scientific = FALSE)) 
+                                                 scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
 
-ggsave(filename = "results/figures/Final_figures/ODE_E1E2I_O1.png")
+
+plot_EI <- plot_grid(C1_EI,O1_EI)
+plot_legend <- get_legend(legend + theme(legend.justification="bottom"))
+
+plot_grid(plot_EI, plot_legend,
+          ncol = 1,
+          rel_heights = c(15,1))
+
+
+ggsave(filename = "results/figures/Final_figures/ODE_EI_C1O1.png")
+
 
 
 
@@ -270,9 +331,47 @@ Snails %>% filter(Farm == "O1" & variable %in% c("S","E1","E2","I")) %>%
                                                max = as.Date("2017-12-31")),
                date_labels = "%b-%y") +
   scale_y_continuous(labels = function(x) format(x, big.mark = ",",
-                                                 scientific = FALSE)) 
+                                                 scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave(filename = "results/figures/Final_figures/ODE_SE1E2I_O1.png")
+
+
+# SEI for snails (The E states are kept seperate) --------------------------
+Snails %>% filter(Farm == "C1" & variable %in% c("pop","S")) %>% 
+  ggplot(aes(x = date,
+             y = median,
+             color = variable)) +
+  geom_line(alpha = 0.6) + 
+  scale_color_manual(values=c(color_scheme_2[2],
+                              color_scheme_2[6]),
+                     name = "",
+                     label = c("Population","Susceptible")) + 
+  theme_bw(base_size = 11,
+           base_family = "Lucida Bright") +
+  labs(x = "Date",
+       y = "Snails [#]",
+       title = "Daily snail population and susceptibles on farm C1",
+       subtitle = "ODE - Median of simulations") +
+  scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
+                                               max = as.Date("2017-12-31")),
+               date_labels = "%b-%y") +
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",",
+                                                 scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+
+ggsave(filename = "results/figures/Final_figures/ODE_pop_S.png")
+
+
+
+
+
+
+
 
 # Susceptible and snail population for one farm 
 Snails %>% filter(Farm == "O1" & variable == "pop") %>% 
@@ -292,35 +391,38 @@ Snails %>% filter(Farm == "O1" & variable == "pop") %>%
                                                max = as.Date("2017-12-31")),
                date_labels = "%b-%y") +
   scale_y_continuous(labels = function(x) format(x, big.mark = ",",
-                                                 scientific = FALSE)) 
+                                                 scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave(filename = "results/figures/Final_figures/ODE_S_pop_O1.png")
 
 # Infected snails with quantiules on O1 for a single year
 
-Snails  %>% filter(variable == "E2" & Farm == "O1" & 
-                     date > as.Date("2016-11-01") & 
-                     date < as.Date("2017-05-01")) %>% 
+Snails  %>% filter(variable == "I" & (Farm == "C1" | Farm == "O1"),
+                     date > as.Date("2017-06-01") & 
+                     date < as.Date("2017-10-01")) %>% 
   ggplot(aes(x = date)) + 
-  geom_line(aes(y = median, color = "Median")) +
-  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quantiles"), alpha =  0.3) + 
+  geom_line(aes(y = median, color = Farm)) +
+  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = Farm), alpha =  0.3) + 
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
-  scale_color_manual(values = color_scheme[1],
-                     name = "") + 
-  scale_fill_manual(values = color_scheme[1],
-                    name = "") + 
+  scale_color_manual(values = c(color_scheme[4],
+                               color_scheme[6]),
+                     name = "Median") + 
+  scale_fill_manual(values = c(color_scheme[4],
+                               color_scheme[6]),
+                    name = "Quantiles") + 
   labs(x = "Date",
        y = "Snails [#]",
-       title = "Infected snails on farm O1",
+       title = "Infected snails on farm C1 and O1",
        subtitle = "ODE - Q1, median and Q3 of simulations") +
-  scale_x_date(breaks = "1 months", limits = c(min = as.Date("2016-11-01"), 
-                                               max = as.Date("2017-05-01")),
+  scale_x_date(breaks = "1 months", limits = c(min = as.Date("2017-06-01"), 
+                                               max = as.Date("2017-10-01")),
                date_labels = "%b-%y") +
   scale_y_continuous(labels = function(x) format(x, big.mark = ",",
                                                  scientific = FALSE)) 
 
-ggsave(filename = "results/figures/Final_figures/ODE_I_quantiles_O1_.png")
+ggsave(filename = "results/figures/Final_figures/ODE_I_quantiles_C1O1_.png")
 
 
 

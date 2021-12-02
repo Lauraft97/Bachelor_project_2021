@@ -118,7 +118,8 @@ plot_SEI <- function(FarmID,nruns){
   
   p <- S/E/I + plot_annotation(title = paste("Farm", FarmID, sep = " "),
                                subtitle = "IBM - Median of simulations") & 
-    theme(plot.title = element_text(family = "Lucida Bright"))
+    theme(plot.title = element_text(family = "Lucida Bright"),
+          plot.subtitle = element_text(family = "Lucida Bright"))
   
   
   # Return from function ----------------
@@ -361,6 +362,11 @@ plot_validation <- function(FarmID){
   
 }  
 
+
+
+plot_SEI("O2",30)
+
+ggsave("results/figures/appendix/SEI_group_O2.png")
 
 
 
