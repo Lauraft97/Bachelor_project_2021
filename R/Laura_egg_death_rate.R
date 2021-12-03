@@ -476,19 +476,12 @@ save(sim_IBM,file = "results/IBM_C1.RData")
 save(sim_ODE,file = "results/ODE_C1.RData")
 
 
+Dates <- First_sample + (1:time) - 1
+
+mu_egg <- tibble(Dates = Dates, mu = mu_Egg_test)
+
+save(mu_egg, file = "results/mu_egg_data.RData")
 
 
-ggplot(mapping = aes(x = 1:time,
-                     y = mu_Egg_test)) +
-  geom_line() +
-  geom_vline(xintercept = c(639,660),
-             color = "red")
-
-as.Date("2017-01-25")-First_sample
-as.Date("2017-02-15")-First_sample
-
-
-daily_weather %>% filter(location == "Toender" & Date > as.Date("2017-01-10") &
-                         Date < as.Date("2017-02-15"))
 
 

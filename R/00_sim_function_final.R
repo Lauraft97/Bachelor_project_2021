@@ -450,19 +450,5 @@ run_simulation <- function(FarmID,nruns){
   
 }
 
-# Sofie: Skal køre C1 og C2
-# Anna: Kører O1
-# Laura: Kører O2
 
-result <- run_simulation("C1",30)
-
-sim_validation <- result[[1]]
-sim_ODE <- result[[3]]
-sim_IBM <- result[[2]]
-
-
-# HUSK AT ÆNDRE FIL NAVN
-save(sim_validation,file = "results/validation_C1.RData")
-save(sim_IBM,file = "results/IBM_C1.RData")
-save(sim_ODE,file = "results/ODE_C1.RData")
 

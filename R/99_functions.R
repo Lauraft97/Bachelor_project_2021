@@ -24,7 +24,6 @@ sine <- function(a,b,c,d,x){
 # Sampling from the different groups to cohort
 cohort <- function(data,distr,nCohort){
 
-  
   nGroup <- round(distr*nCohort,0)
   
   CohortID <- c()
