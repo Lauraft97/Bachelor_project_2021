@@ -3,7 +3,8 @@ rm(list = ls())
 library(epiR)
 library(tidyverse)
 library(GGally)
-library(RColorBrewer)
+color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
+color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
 
 load("results/sensitivity_O1_Anna.RData")
@@ -29,9 +30,6 @@ results <- as.data.frame(results)
 # PRCC --------------------------------------------------------------------
 
 windowsFonts(`Lucida Bright` = windowsFont("Lucida Bright"))
-color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
-color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
-
 
 PRCC <- epi.prcc(results)
 PRCC <- tibble(PRCC)
@@ -77,11 +75,6 @@ ggsave("results/figures/Final_figures/PRCC.png")
 
 # Scatterplot -------------------------------------------------------------
 
-# ggpairs(results,  columnLabels = c("\u03BB_ES","\u03BC_Egg","\u03B4_S","\u03B3_S",
-#                                    "\u03BC_S","\u03BC_M",
-#                                   "Slaughter prob", "egg_\u03BC_scaled",
-#                                   "Baseline snail \n population","End infected")) + 
-#         theme_bw()
 panel.cor <- function(x, y, digits = 2, cex.cor, ...)
 {
   usr <- par("usr"); on.exit(par(usr))
@@ -103,6 +96,7 @@ upper.panel<-function(x, y){
   points(x,y, pch = 16, col = color_scheme[1])
 }
 
+png("results/figures/Final_figures/scatter.png",width = 700)
 # Create the plots
 pairs(results, 
       lower.panel = upper.panel,
@@ -114,9 +108,9 @@ pairs(results,
                  expression(mu[S]),
                  expression(mu[M]),
                  "Slaughter \n probability",
-                 expression(paste("egg_",mu,"_scaled")),
-                 "Baseline snail \n population",
+                 expression(paste("egg ",mu," scaled")),
+                 "Baseline \n snail pop ",
                  "End \n infected"),
       cex.labels=1.15,gap=0.5)
-
+dev.off()
 

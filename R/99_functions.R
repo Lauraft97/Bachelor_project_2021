@@ -43,6 +43,22 @@ cohort <- function(data,distr,nCohort){
   return(CohortID)
 }
 
+# Writing sine function to account for ground vs air temperature
+sine_ground_vs_air <- function(a_sub,a_add,x){
+  #If between 8pm and 8am 
+  if(x <= 8 | x> 20){
+    #Sine funtion that will be used to add a maximum of 
+    #"a_add" degrees to the air temperature
+    sine(a=a_add, b=2*pi/24, c=-4, d=0, x=x)
+  }
+  else{
+    #Sine funtion that will be used to subtract a maximum of 
+    #"a_sub" degrees to the air temperature
+    #Function between 8am and 8pm
+    sine(a=a_sub, b=2*pi/24, c=-4, d=0, x=x)
+  }
+}
+
 
 
 
