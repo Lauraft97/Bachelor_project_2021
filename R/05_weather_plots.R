@@ -65,8 +65,8 @@ ggsave(filename = "results/figures/Final_figures/05_corr_temp.png")
 
 # Rain plot and exploration -----------------------------------------------
 First_sample <- as.Date("2015-01-01")
-rain_toender <- rep(0,979)
-rain_frederikssund <- rep(0,979)
+rain_toender <- rep(0,1095)
+rain_frederikssund <- rep(0,1095)
 
 for(i in c(1:length(rain_toender))){
   
