@@ -8,11 +8,6 @@ First_sample <- as.Date("2015-04-27")
 windowsFonts(`Lucida Bright` = windowsFont("Lucida Bright"))
 Sys.setlocale("LC_ALL","English")
 
-
-scientific_10 <- function(x) {
-  parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
-}
-
 # Color_schemes 
 color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
@@ -468,7 +463,8 @@ mu_egg %>% filter(Dates > as.Date("2016-11-01") &
                   Dates < as.Date("2017-11-01")) %>% 
   ggplot(aes(x = Dates,
              y = mu)) + 
-  geom_line(color = color_scheme[1]) +
+  geom_line(color = color_scheme[1],
+            size = 1) +
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
   labs(x = "Date",
@@ -495,7 +491,8 @@ daily_weather %>% filter(Date > as.Date("2017-01-01") &
                          location == "Toender") %>% 
   ggplot(aes(x = Date)) + 
   geom_line(aes(y = rain,
-                color = "Rain")) +
+                color = "Rain"),
+            size = 1) +
   geom_point(aes(y = mean_ground_temp_ten,
                 color = "Corrected ground temperature")) +
   scale_color_manual(values = c(color_scheme_2[2],

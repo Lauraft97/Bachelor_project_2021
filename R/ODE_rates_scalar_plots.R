@@ -27,7 +27,8 @@ egg_scaler <- tibble(sick_period = seq(60,500,1),
 
 egg_scaler %>% ggplot(aes(x = sick_period,
                           y = scaler)) +
-  geom_line(col = color_scheme[1]) +
+  geom_line(col = color_scheme[1],
+            size = 1.2) +
   theme_bw(base_size = 12,
            "Lucida Bright")  +
   labs(x = "Sick period [days]",
@@ -42,10 +43,11 @@ ggsave(filename = "results/figures/Final_figures/egg_scaling_factor.png")
 
 
 # Transmission scalar -----------------------------------------------------
-x = seq(0,25,0.5)
+x = seq(0,15,0.5)
 ggplot(mapping = aes(x = x,
                      y = pexp(x,0.24))) +
-  geom_line(col = color_scheme[1]) +
+  geom_line(col = color_scheme[1],
+            size = 1.2) +
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
   labs(x = "Corrected ground temperature [\u00B0C]",
@@ -59,10 +61,11 @@ ggsave(filename = "results/figures/Final_figures/trans_temp_scalar.png")
 
 
 # Death rate scalar -------------------------------------------------------
-x = seq(0,25,0.5)
+x = seq(0,15,0.5)
 ggplot(mapping = aes(x = x,
                      y = 1-pexp(x,0.24))) +
-  geom_line(col = color_scheme[1]) +
+  geom_line(col = color_scheme[1],
+            size = 1.2) +
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
   labs(x = "Corrected ground temperature [\u00B0C]",

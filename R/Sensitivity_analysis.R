@@ -3,6 +3,7 @@ rm(list = ls())
 library(epiR)
 library(tidyverse)
 library(GGally)
+library(xtable)
 color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
 color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 
@@ -31,8 +32,8 @@ results <- as.data.frame(results)
 
 windowsFonts(`Lucida Bright` = windowsFont("Lucida Bright"))
 
-PRCC <- epi.prcc(results)
-PRCC <- tibble(PRCC)
+PRCC_df <- epi.prcc(results)
+PRCC <- tibble(PRCC_df)
 PRCC <- PRCC %>% mutate(variable = colnames(results[,-10]) )
 
 PRCC %>% filter(p.value < 0.05) %>% 

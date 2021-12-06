@@ -4,6 +4,7 @@ rm(list=ls())
 library(cowplot)
 source(file = "R/06_plot_functions.R")
 color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
+windowsFonts(`sans` = windowsFont("Lucida Bright"))
 
 
 
@@ -62,7 +63,8 @@ C1_data <- SEI_total_data("C1",30)
 C1 <- C1_data %>% ggplot(aes(x = date,
                        y = Count,
                        group = State)) +
-            geom_line(aes(color = State)) +
+            geom_line(aes(color = State),
+                      size = 1.2) +
             scale_color_manual(values = color_scheme_2[c(5,1,3)],
                                labels = c("Susceptible", "Exposed","Infected")) +
             theme_bw(base_size = 11) +
@@ -82,7 +84,8 @@ C2_data <- SEI_total_data("C2",30)
 C2 <- C2_data %>% ggplot(aes(x = date,
                              y = Count,
                              group = State)) +
-  geom_line(aes(color = State)) +
+  geom_line(aes(color = State),
+            size = 1.2) +
   scale_color_manual(values = color_scheme_2[c(5,1,3)],
                      labels = c("Susceptible", "Exposed","Infected")) +
   theme_bw(base_size = 11) +
@@ -103,7 +106,8 @@ O1_data <- SEI_total_data("O1",30)
 O1 <- O1_data %>% ggplot(aes(x = date,
                              y = Count,
                              group = State)) +
-  geom_line(aes(color = State)) +
+  geom_line(aes(color = State),
+            size = 1.2) +
   scale_color_manual(values = color_scheme_2[c(5,1,3)],
                      labels = c("Susceptible", "Exposed","Infected")) +
   theme_bw(base_size = 11) +
@@ -124,7 +128,8 @@ O2_data <- SEI_total_data("O2",30)
 O2 <- O2_data %>% ggplot(aes(x = date,
                              y = Count,
                              group = State)) +
-  geom_line(aes(color = State)) +
+  geom_line(aes(color = State),
+            size = 1.2) +
   scale_color_manual(values = color_scheme_2[c(5,1,3)],
                      labels = c("Susceptible", "Exposed","Infected")) +
   theme_bw(base_size = 11) +
@@ -142,7 +147,8 @@ O2 <- O2_data %>% ggplot(aes(x = date,
 legend <- O2_data %>% ggplot(aes(x = date,
                                  y = Count,
                                  group = State)) +
-  geom_line(aes(color = State)) +
+  geom_line(aes(color = State),
+            size = 1.2) +
   scale_color_manual(values = color_scheme_2[c(5,1,3)],
                      labels = c("Susceptible", "Exposed","Infected")) +
   theme_bw(base_size = 11) +
