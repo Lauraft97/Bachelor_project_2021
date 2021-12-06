@@ -12,7 +12,7 @@ source(file ="R/99_functions.R")
 weather <- weather %>% filter(date_time >= as.Date("2015-01-01"))
 
 # Column with dates and hours separated
-weather <- weather %>% select(location, date_time, temp, rain_1h, snow_1h) %>% 
+weather <- weather %>% select(location, date_time, temp, rain_1h) %>% 
   mutate(Date = format(date_time, format = "%d-%m-%Y"),
          Date = as.Date(Date, format = "%d-%m-%Y"),
          Time = format(date_time, format = "%H"),
@@ -38,13 +38,12 @@ warm_days <- weather %>% group_by(location,Date) %>%
   summarise(n_hours = n())
 
 #Going from hourly data to daily data.
-# Summing the daily snow and rain
+# Summing the daily rain
 # Calculating the mean ground temperature
 # Calculating the mean ground temperature with 10 subtracted
 daily_weather <- weather  %>% 
   group_by(location,Date) %>% 
   summarise(rain = sum(rain_1h, na.rm = T),
-            snow = sum(snow_1h, na.rm = T),
             mean_ground_temp = mean(ground_temp),
             mean_ground_temp_ten = mean(ground_temp_ten)) %>% 
   mutate(Date = as.Date(Date, format = "%d-%m-%Y")) %>% 
