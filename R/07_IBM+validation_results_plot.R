@@ -2,7 +2,7 @@
 rm(list=ls())
 
 library(cowplot)
-source(file = "R/06_plot_functions.R")
+source(file = "R/07_plot_functions.R")
 color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
 windowsFonts(`sans` = windowsFont("Lucida Bright"))
 
@@ -17,7 +17,7 @@ SEI_total_data <- function(FarmID,nruns){
   library(tidyverse)
   library(patchwork)
   
-  source(file = "R/02C_Farm_info.R")
+  source(file = "R/00B_farm_info.R")
   
   load(paste0("results/IBM_",FarmID,".Rdata"))
 
@@ -68,7 +68,8 @@ C1 <- C1_data %>% ggplot(aes(x = date,
             scale_color_manual(values = color_scheme_2[c(5,1,3)],
                                labels = c("Susceptible", "Exposed","Infected")) +
             theme_bw(base_size = 11) +
-            labs(title = "Farm C1",
+            labs(title = "Disease dynamics",
+                 subtitle = "Farm C1",
                  x = "",
                  y = "Cattle [#]") +
             scale_x_date(breaks = "4 months", limits = c(min = as.Date("2015-05-04"), 
@@ -89,7 +90,8 @@ C2 <- C2_data %>% ggplot(aes(x = date,
   scale_color_manual(values = color_scheme_2[c(5,1,3)],
                      labels = c("Susceptible", "Exposed","Infected")) +
   theme_bw(base_size = 11) +
-  labs(title = "Farm C2",
+  labs(subtitle = "Farm C2",
+       title = "",
        x = "",
        y = "") +
   scale_x_date(breaks = "4 months", limits = c(min = as.Date("2015-05-05"), 
@@ -111,7 +113,7 @@ O1 <- O1_data %>% ggplot(aes(x = date,
   scale_color_manual(values = color_scheme_2[c(5,1,3)],
                      labels = c("Susceptible", "Exposed","Infected")) +
   theme_bw(base_size = 11) +
-  labs(title = "Farm O1",
+  labs(subtitle = "Farm O1",
        x = "Date",
        y = "Cattle [#]") +
   scale_x_date(breaks = "4 months", limits = c(min = as.Date("2015-04-27"), 
@@ -133,7 +135,7 @@ O2 <- O2_data %>% ggplot(aes(x = date,
   scale_color_manual(values = color_scheme_2[c(5,1,3)],
                      labels = c("Susceptible", "Exposed","Infected")) +
   theme_bw(base_size = 11) +
-  labs(title = "Farm O2",
+  labs(subtitle = "Farm O2",
        x = "Date",
        y = "") +
   scale_x_date(breaks = "4 months", limits = c(min = as.Date("2015-04-27"), 

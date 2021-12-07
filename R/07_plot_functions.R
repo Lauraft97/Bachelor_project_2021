@@ -5,7 +5,7 @@ plot_SEI <- function(FarmID,nruns){
   library(tidyverse)
   library(patchwork)
   
-  source(file = "R/02C_Farm_info.R")
+  source(file = "R/00B_farm_info.R")
   
   load(paste0("results/IBM_",FarmID,".Rdata"))
   
@@ -136,7 +136,7 @@ plot_validation <- function(FarmID){
   
   # Import functions 
   source(file ="R/99_functions.R")
-  source(file = "R/02C_Farm_info.R")
+  source(file = "R/00B_farm_info.R")
   
   
   # Preparing farm data -------------------------------------------------

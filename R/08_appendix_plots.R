@@ -20,7 +20,7 @@ plot_SEI <- function(FarmID,nruns){
   library(tidyverse)
   library(patchwork)
   
-  source(file = "R/02C_Farm_info.R")
+  source(file = "R/00B_farm_info.R")
   
   load(paste0("results/IBM_",FarmID,".Rdata"))
   
@@ -165,7 +165,7 @@ Eggs %>% filter(variable == "Egg" & Farm == "C1" &
                   date < as.Date("2017-11-01")) %>% 
   ggplot(aes(x = date)) + 
   geom_line(aes(y = median, color = "Median")) +
-  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quantiles"), alpha =  0.3) + 
+  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quartiles"), alpha =  0.3) + 
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
   scale_color_manual(values = color_scheme[4],
@@ -189,7 +189,7 @@ Eggs %>% filter(variable == "Egg" & Farm == "C2" &
                   date < as.Date("2017-11-01")) %>% 
   ggplot(aes(x = date)) + 
   geom_line(aes(y = median, color = "Median")) +
-  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quantiles"), alpha =  0.3) + 
+  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quartiles"), alpha =  0.3) + 
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
   scale_color_manual(values = color_scheme[5],
@@ -213,7 +213,7 @@ Eggs %>% filter(variable == "Egg" & Farm == "O2" &
                   date < as.Date("2017-11-01")) %>% 
   ggplot(aes(x = date)) + 
   geom_line(aes(y = median, color = "Median")) +
-  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quantiles"), alpha =  0.3) + 
+  geom_ribbon(aes(ymin = Q1, ymax = Q3, fill = "Quartiles"), alpha =  0.3) + 
   theme_bw(base_size = 12,
            base_family = "Lucida Bright") +
   scale_color_manual(values = color_scheme[8],
@@ -256,7 +256,7 @@ Snails %>% filter(Farm == "C2" & variable %in% c("pop","S")) %>%
   labs(x = "Date",
        y = "Snails [#]",
        title = "Farm C2: Daily snail population and susceptibles",
-       subtitle = "ODE - Median of simulations") +
+       subtitle = "Median of simulations") +
   scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
                                                max = as.Date("2017-12-31")),
                date_labels = "%b-%y") +
@@ -280,7 +280,7 @@ Snails %>% filter(Farm == "O1" & variable %in% c("pop","S")) %>%
   labs(x = "Date",
        y = "Snails [#]",
        title = "Farm O1: Daily snail population and susceptibles",
-       subtitle = "ODE - Median of simulations") +
+       subtitle = "Median of simulations") +
   scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
                                                max = as.Date("2017-12-31")),
                date_labels = "%b-%y") +
@@ -304,7 +304,7 @@ Snails %>% filter(Farm == "O2" & variable %in% c("pop","S")) %>%
   labs(x = "Date",
        y = "Snails [#]",
        title = "Farm O2: Daily snail population and susceptibles",
-       subtitle = "ODE - Median of simulations") +
+       subtitle = "Median of simulations") +
   scale_x_date(breaks = "2 months", limits = c(min = First_sample, 
                                                max = as.Date("2017-12-31")),
                date_labels = "%b-%y") +
@@ -429,7 +429,7 @@ Snails  %>% filter(variable == "I" & (Farm == "C2" | Farm == "O2"),
                      name = "Median") + 
   scale_fill_manual(values = c(color_scheme[5],
                                color_scheme[8]),
-                    name = "Quantiles") + 
+                    name = "Quartiles") + 
   labs(x = "Date",
        y = "Snails [#]",
        title = "Infected snails on farm C2 and O2",

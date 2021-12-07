@@ -1,13 +1,9 @@
-# 07 Parameter calculations
+# Transmission probability 
 
 rm(list = ls())
 
 library(tidyverse)
 library(patchwork)
-library("RColorBrewer")
-color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
-color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
-
 
 # Import functions --------------------------------------------------------
 source(file ="R/99_functions.R")

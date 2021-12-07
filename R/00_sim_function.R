@@ -10,9 +10,9 @@ run_simulation <- function(FarmID,nruns){
 
   # Import functions --------------------------------------------------------
   source(file ="R/99_functions.R")
-  source(file = "R/02A_Population_dynamics.R")
-  source(file = "R/02B_ODE_rates.R")
-  source(file = "R/02C_Farm_info.R")
+  source(file = "R/functions/population_dynamics.R")
+  source(file = "R/functions/ODE_rates.R")
+  source(file = "R/00B_farm_info.R")
   library(tidyverse)
   library(lubridate)
   

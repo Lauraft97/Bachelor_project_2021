@@ -5,7 +5,6 @@ library(patchwork)
 library(cowplot)
 library(grid)
 library(gridExtra)
-library("RColorBrewer")
 color_scheme <- RColorBrewer::brewer.pal(8, "Set2")[1:8]
 color_scheme_2 <- RColorBrewer::brewer.pal(12, "Paired")[1:12]
 windowsFonts(sans = windowsFont("Lucida Bright"))

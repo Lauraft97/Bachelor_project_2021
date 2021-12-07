@@ -53,7 +53,7 @@ daily_weather %>% filter(Date >= as.Date("2015-01-01") & Date <= as.Date("2017-1
   theme_bw(base_size = 12,
            base_family = "Lucida Bright")+
   geom_line(col = color_scheme[1])+
-  labs(y = "Corrected ground temperature")+
+  labs(y = "Corrected ground temperature [\u00B0C]")+
   scale_x_date(breaks = break.vec, date_labels = "%b-%y")+
   theme(axis.text.x = element_text(vjust = 1, hjust=1, angle=45))+
   facet_wrap(~location, labeller = as_labeller(c("Frederikssund" = "Frederikssund", 
@@ -62,5 +62,28 @@ daily_weather %>% filter(Date >= as.Date("2015-01-01") & Date <= as.Date("2017-1
 
 ggsave(filename = "results/figures/Final_figures/05_corr_temp.png") 
 
+
+First_sample <- as.Date("2015-04-27")
+rain_toender <- rep(0,979)
+rain_frederikssund <- rep(0,979)
+
+
+
+for(i in c(1:length(rain_toender))){
+  
+  date <- First_sample + i
+  
+  last10Days <- date - 0:9
+  
+  rain_toender[i] <- daily_weather %>% filter(Date %in% last10Days,location == "Toender") %>%
+    summarise(rain = sum(rain)) %>% pull()
+  
+  rain_frederikssund[i] <- daily_weather %>% filter(Date %in% last10Days,location == "Frederikssund") %>%
+    summarise(rain = sum(rain)) %>% pull()
+}
+
+
+
+rain <- tibble(rain_toender, rain_frederikssund)
 
 
